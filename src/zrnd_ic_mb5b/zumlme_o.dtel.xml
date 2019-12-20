@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD04V>
+    <ROLLNAME>ZUMLME_O</ROLLNAME>
+    <DDLANGUAGE>E</DDLANGUAGE>
+    <DOMNAME>MENG13V</DOMNAME>
+    <LOGFLAG>X</LOGFLAG>
+    <HEADLEN>13</HEADLEN>
+    <SCRLEN1>10</SCRLEN1>
+    <SCRLEN2>15</SCRLEN2>
+    <SCRLEN3>20</SCRLEN3>
+    <DDTEXT>Stock in Transfer for Subcontracting (Plant to Plant)</DDTEXT>
+    <REPTEXT>SC In Transf.</REPTEXT>
+    <SCRTEXT_S>SC Transf.</SCRTEXT_S>
+    <SCRTEXT_M>SC In Transf.</SCRTEXT_M>
+    <SCRTEXT_L>SC In Transf.(Plant)</SCRTEXT_L>
+    <DTELMASTER>E</DTELMASTER>
+    <REFKIND>D</REFKIND>
+   </DD04V>
+  </asx:values>
+ </asx:abap>
+</abapGit>

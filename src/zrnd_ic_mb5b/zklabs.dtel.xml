@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD04V>
+    <ROLLNAME>ZKLABS</ROLLNAME>
+    <DDLANGUAGE>E</DDLANGUAGE>
+    <DOMNAME>MENG13V</DOMNAME>
+    <LOGFLAG>X</LOGFLAG>
+    <HEADLEN>17</HEADLEN>
+    <SCRLEN1>10</SCRLEN1>
+    <SCRLEN2>15</SCRLEN2>
+    <SCRLEN3>20</SCRLEN3>
+    <DDTEXT>Unrestricted-Use Consignment Stock</DDTEXT>
+    <REPTEXT>Unrestr. Consgt</REPTEXT>
+    <SCRTEXT_S>Unr. Cnsgt</SCRTEXT_S>
+    <SCRTEXT_M>Unrestr. Consgt</SCRTEXT_M>
+    <SCRTEXT_L>Unrestr. Consignment</SCRTEXT_L>
+    <DTELMASTER>E</DTELMASTER>
+    <REFKIND>D</REFKIND>
+   </DD04V>
+  </asx:values>
+ </asx:abap>
+</abapGit>

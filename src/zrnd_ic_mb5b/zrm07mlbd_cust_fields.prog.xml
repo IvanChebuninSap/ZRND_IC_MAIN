@@ -3,9 +3,10 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>ZRNDIC_RM07MLBD</NAME>
+    <NAME>ZRM07MLBD_CUST_FIELDS</NAME>
     <DBAPL>S</DBAPL>
-    <SUBC>1</SUBC>
+    <DBNA>D$</DBNA>
+    <SUBC>I</SUBC>
     <FIXPT>X</FIXPT>
     <LDBNAME>D$S</LDBNAME>
     <UCCHECK>X</UCCHECK>
@@ -13,8 +14,8 @@
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>Copy of mb5b report from E77</ENTRY>
-     <LENGTH>28</LENGTH>
+     <ENTRY>Copy of rm07mlbd_cust_fields from e77</ENTRY>
+     <LENGTH>37</LENGTH>
     </item>
    </TPOOL>
   </asx:values>
