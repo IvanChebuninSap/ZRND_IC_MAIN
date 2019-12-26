@@ -13,7 +13,7 @@ TYPES: BEGIN OF mslb_typ,
          lblab LIKE zmslb-lblab,
          lbins LIKE zmslb-lbins,
          lbein LIKE zmslb-lbein,
-         lbuml LIKE zmslb-lbuml.                             "1421484
+         lbuml LIKE zmslb-lbuml.                            "1421484
 *ENHANCEMENT-POINT ehp605_rm07mldd_01 SPOTS es_rm07mlbd STATIC .
 TYPES: END OF mslb_typ.
 
@@ -29,7 +29,7 @@ TYPES: BEGIN OF msku_typ,
          kulab LIKE zmsku-kulab,
          kuins LIKE zmsku-kuins,
          kuein LIKE zmsku-kuein,
-         kuuml LIKE zmsku-kuuml.                             "1421484
+         kuuml LIKE zmsku-kuuml.                            "1421484
 *ENHANCEMENT-POINT ehp605_rm07mldd_02 SPOTS es_rm07mlbd STATIC .
 TYPES: END OF msku_typ.
 
@@ -55,6 +55,26 @@ TYPES: BEGIN OF cmspr_typ.
 TYPES:   charg LIKE zmspr-charg.
 TYPES: END OF cmspr_typ.
 *ENHANCEMENT-POINT rm07mldd_01 SPOTS es_rm07mlbd STATIC.
+TYPES: BEGIN OF mcsd_typ,
+         werks LIKE zmcsd-werks,
+         lgort LIKE zmcsd-lgort,
+         matnr LIKE zmcsd-matnr,
+         sobkz LIKE zmcsd-sobkz,
+         sdlab LIKE zmcsd-sdlab,
+         sdins LIKE zmcsd-sdins,
+         sdspe LIKE zmcsd-sdspe,
+         sdein LIKE zmcsd-sdein.
+TYPES: END OF mcsd_typ.
+
+TYPES: BEGIN OF cmcsd_typ.
+        INCLUDE TYPE mcsd_typ.
+TYPES:   charg LIKE zmcsd-charg.
+TYPES: END OF cmcsd_typ.
+
+** DI IS-ADEC-SSP Customer Stock
+DATA: xmcsd  TYPE cmcsd_typ OCCURS 0 WITH HEADER LINE.
+DATA: imcsd  TYPE cmcsd_typ OCCURS 0 WITH HEADER LINE.
+DATA: imcsdx TYPE mcsd_typ  OCCURS 0 WITH HEADER LINE.
 
 TYPES: BEGIN OF mkol_typ,
          werks LIKE zmkol-werks,
@@ -92,36 +112,36 @@ TYPES: END OF cmska_typ.
 
 *------------------------- TABELLEN -----------------------------------*
 
-*TABLES:
-*         bkpf,                 "Buchhaltungsbelegkopf
-*         bsim,                 "Buchhaltungsbelege
-*         makt,                 "Materialkurztext
-*         mara,                 "allg. zum Material
-*         mard,                 "Materialbestände auf Lagerortebene
-*         mchb,                 "Chargenbestände auf Lagerortebene
-*         mcha,                                              "134317
-*         mbew,                 "Bewertungssegment
-*         ebew,                 "bewerteter Sonderbestand 'E'
-*         qbew,                 "bewerteter Sonderbestand 'Q'
-*        zmkol,                 "Sonderbestand Lieferantenkonsignation
-*         mkpf,                 "Materialbelegköpfe
-*         mseg,                 "Materialbelege
-*         zmska,                 "Auftragsbestand
-*         msku,                 "Sonderbestand Kundenkonsignation
-*         mslb,                 "Sonderbestand Lohnbearbeitung
-*         mspr,                 "Projektbestand
-*         rpgri,                "Texttabelle Gruppierung Bewegungsarten
-*         t001,                 "Prüftabelle Buchungskreise
-*         t001k,                "Prüftabelle Bewertungskreise
-*         t001w,                "Prüftabelle Werke
-*         t001l,                "Prüftabelle Lagerorte
-*         t134m,                "Prüftabelle Materialart
-*         t156m,                "Mengenstrings
-*         t156s,                "Bewegungsarten
-*         tcurm,                "Bewertungskreisebene
-*         bseg,
-*         acchd
-*.
+TABLES:
+         zbkpf,                 "Buchhaltungsbelegkopf
+         zbsim,                 "Buchhaltungsbelege
+         zmakt,                 "Materialkurztext
+         zmara,                 "allg. zum Material
+         zmard,                 "Materialbestände auf Lagerortebene
+         zmchb,                 "Chargenbestände auf Lagerortebene
+         zmcha,                                             "134317
+         zmbew,                 "Bewertungssegment
+         zebew,                 "bewerteter Sonderbestand 'E'
+         zqbew,                 "bewerteter Sonderbestand 'Q'
+        zmkol,                 "Sonderbestand Lieferantenkonsignation
+         zmkpf,                 "Materialbelegköpfe
+         zmseg,                 "Materialbelege
+         zmska,                 "Auftragsbestand
+         zmsku,                 "Sonderbestand Kundenkonsignation
+         zmslb,                 "Sonderbestand Lohnbearbeitung
+         zmspr,                 "Projektbestand
+         "rpgri,                "Texttabelle Gruppierung Bewegungsarten
+         zt001,                 "Prüftabelle Buchungskreise
+         zt001k,                "Prüftabelle Bewertungskreise
+         zt001w,                "Prüftabelle Werke
+         zt001l,                "Prüftabelle Lagerorte
+         zt134m,                "Prüftabelle Materialart
+         zt156m,                "Mengenstrings
+         zt156s,                "Bewegungsarten
+         ztcurm,                "Bewertungskreisebene
+         zbseg
+         "acchd
+.
 *
 ** for checking the FI summarization                        "n497992
 *TABLES : ttypv.     "customizing table FI summarization    "n497992
@@ -147,22 +167,22 @@ DATA: BEGIN OF it134m OCCURS 100,
       END OF it134m.
 
 DATA: BEGIN OF it156 OCCURS 100,
-        bwart LIKE Zt156s-bwart,
-        wertu LIKE Zt156s-wertu,
-        mengu LIKE Zt156s-mengu,
-        sobkz LIKE Zt156s-sobkz,
-        kzbew LIKE Zt156s-kzbew,
-        kzzug LIKE Zt156s-kzzug,
-        kzvbr LIKE Zt156s-kzvbr,
-        bustm LIKE Zt156s-bustm,
-        bustw LIKE Zt156s-bustw,                             "147374
+        bwart LIKE zt156s-bwart,
+        wertu LIKE zt156s-wertu,
+        mengu LIKE zt156s-mengu,
+        sobkz LIKE zt156s-sobkz,
+        kzbew LIKE zt156s-kzbew,
+        kzzug LIKE zt156s-kzzug,
+        kzvbr LIKE zt156s-kzvbr,
+        bustm LIKE zt156s-bustm,
+        bustw LIKE zt156s-bustw,                            "147374
         lbbsa LIKE zt156m-lbbsa,
-        bwagr LIKE Zt156s-bwagr,
+        bwagr LIKE zt156s-bwagr,
       END OF it156.
 
 DATA: BEGIN OF it156w OCCURS 100,                           "149448
-        bustw LIKE zt156w-bustw,                             "149448
-        xbgbb LIKE zt156w-xbgbb,                             "149448
+        bustw LIKE zt156w-bustw,                            "149448
+        xbgbb LIKE zt156w-xbgbb,                            "149448
       END OF it156w.                                        "149448
 
 DATA: BEGIN OF it156x OCCURS 100,
@@ -175,12 +195,12 @@ DATA: BEGIN OF it156x OCCURS 100,
 * working table with material short texts / contains only   "n451923
 * the necessary fields                                      "n451923
 TYPES : BEGIN OF stype_makt,                                "n451923
-          matnr LIKE zmakt-matnr,                            "n451923
-          maktx LIKE zmakt-maktx,                            "n451923
+          matnr LIKE zmakt-matnr,                           "n451923
+          maktx LIKE zmakt-maktx,                           "n451923
         END OF stype_makt,                                  "n451923
                                                             "n451923
         stab_makt TYPE STANDARD TABLE OF                    "n451923
-      stype_makt WITH DEFAULT KEY.                          "n451923
+stype_makt WITH DEFAULT KEY.                                "n451923
                                                             "n451923
 DATA : g_s_makt TYPE stype_makt,                            "n451923
        g_t_makt TYPE stab_makt.                             "n451923
@@ -194,26 +214,26 @@ DATA: END OF imara.
 
 * definition of working area for valuation tables improved  "n450764
 TYPES : BEGIN OF stype_mbew,                                "n450764
-          matnr     LIKE zmbew-matnr,                        "n450764
-          bwkey     LIKE zmbew-bwkey,                        "n450764
-          bwtar     LIKE zmbew-bwtar,                        "n450764
+          matnr     LIKE zmbew-matnr,                       "n450764
+          bwkey     LIKE zmbew-bwkey,                       "n450764
+          bwtar     LIKE zmbew-bwtar,                       "n450764
           lbkum(09) TYPE p DECIMALS 3,                      "n450764
           salk3(09) TYPE p DECIMALS 2,                      "n450764
-          meins     LIKE zmara-meins,                        "n450764
-          waers     LIKE zt001-waers,                        "n450764
-          bwtty     LIKE zmbew-bwtty,                        "n1227439
+          meins     LIKE zmara-meins,                       "n450764
+          waers     LIKE zt001-waers,                       "n450764
+          bwtty     LIKE zmbew-bwtty,                       "n1227439
         END OF stype_mbew,                                  "n450764
                                                             "n450764
         stab_mbew TYPE STANDARD TABLE OF                    "n450764
-      stype_mbew WITH DEFAULT KEY.                          "n450764
+stype_mbew WITH DEFAULT KEY.                                "n450764
                                                             "n450764
 DATA: g_s_mbew TYPE stype_mbew,                             "n450764
       g_t_mbew TYPE stab_mbew.                              "n450764
 
 DATA: BEGIN OF imcha OCCURS 100,                            "n1404822
-        matnr LIKE zmcha-matnr,                              "n1404822
-        werks LIKE zmcha-werks,                              "n1404822
-        charg LIKE zmcha-charg,                              "n1404822
+        matnr LIKE zmcha-matnr,                             "n1404822
+        werks LIKE zmcha-werks,                             "n1404822
+        charg LIKE zmcha-charg,                             "n1404822
       END OF imcha.
 *
 TYPES : BEGIN OF stype_accdet,
@@ -295,16 +315,16 @@ DATA: imskax TYPE mska_typ  OCCURS 0 WITH HEADER LINE.
 
 * global working table for the FI doc headers BKPF          "n856424
 TYPES : BEGIN OF stype_bkpf,                                "n856424
-          bukrs LIKE zbkpf-bukrs,                            "n856424
-          belnr LIKE zbkpf-belnr,                            "n856424
-          gjahr LIKE zbkpf-gjahr,                            "n856424
-          blart LIKE zbkpf-blart,                            "n856424
-          budat LIKE zbkpf-budat,                            "n856424
-          awkey LIKE zbkpf-awkey,                            "n856424
-          cpudt LIKE zbkpf-cpudt,                            "n856424
-          cputm LIKE zbkpf-cputm,                            "n856424
-          usnam LIKE zbkpf-usnam,                            "n856424
-          awtyp LIKE zbkpf-awtyp,                            "n856424
+          bukrs LIKE zbkpf-bukrs,                           "n856424
+          belnr LIKE zbkpf-belnr,                           "n856424
+          gjahr LIKE zbkpf-gjahr,                           "n856424
+          blart LIKE zbkpf-blart,                           "n856424
+          budat LIKE zbkpf-budat,                           "n856424
+          awkey LIKE zbkpf-awkey,                           "n856424
+          cpudt LIKE zbkpf-cpudt,                           "n856424
+          cputm LIKE zbkpf-cputm,                           "n856424
+          usnam LIKE zbkpf-usnam,                           "n856424
+          awtyp LIKE zbkpf-awtyp,                           "n856424
         END OF stype_bkpf.                                  "n856424
                                                             "n856424
 * global working table for the FI doc items BSEG
@@ -458,27 +478,27 @@ DATA: BEGIN OF leiste,
 *------------------------ Hilfsfelder ---------------------------------*
 
 DATA:
-       curm          LIKE ztcurm-bwkrs_cus,
-      bukr          LIKE zt001-bukrs,
-      bwkr          LIKE zt001k-bwkey,
-      werk          LIKE zt001w-werks,
-      name          LIKE zt001w-name1,
-      lort          LIKE zt001l-lgort,
-      waer          LIKE zt001-waers,
-      index_0       LIKE sy-tabix,
-      index_1       LIKE sy-tabix,
-      index_2       LIKE sy-tabix,
-      index_3       LIKE sy-tabix,
-      index_4       LIKE sy-tabix,
-      aktdat        LIKE sy-datlo,
-      sortfield(30),
-      material(30),
+  curm          LIKE ztcurm-bwkrs_cus,
+  bukr          LIKE zt001-bukrs,
+  bwkr          LIKE zt001k-bwkey,
+  werk          LIKE zt001w-werks,
+  name          LIKE zt001w-name1,
+  lort          LIKE zt001l-lgort,
+  waer          LIKE zt001-waers,
+  index_0       LIKE sy-tabix,
+  index_1       LIKE sy-tabix,
+  index_2       LIKE sy-tabix,
+  index_3       LIKE sy-tabix,
+  index_4       LIKE sy-tabix,
+  aktdat        LIKE sy-datlo,
+  sortfield(30),
+  material(30),
 
-      new_bwagr     LIKE zt156s-bwagr,
-      old_bwagr     LIKE zt156s-bwagr,
-      leer(1)       TYPE c,
-      counter       LIKE sy-tabix,
-      inhalt(10)    TYPE n.
+  new_bwagr     LIKE zt156s-bwagr,
+  old_bwagr     LIKE zt156s-bwagr,
+  leer(1)       TYPE c,
+  counter       LIKE sy-tabix,
+  inhalt(10)    TYPE n.
 
 DATA: jahrlow(4)   TYPE c,
       monatlow(2)  TYPE c,
@@ -542,7 +562,7 @@ TYPES : BEGIN OF stype_organ,
         END OF stype_organ,
 
         stab_organ TYPE STANDARD TABLE OF stype_organ
-       WITH KEY keytype keyfield bwkey werks.
+ WITH KEY keytype keyfield bwkey werks.
 
 DATA : g_s_organ TYPE stype_organ,
        g_t_organ TYPE stab_organ
@@ -560,28 +580,28 @@ DATA : g_t_auth_plant        TYPE stab_auth_plant WITH HEADER LINE.
 
 * for the assignment of the MM and FI documents             "n443935
 TYPES : BEGIN OF stype_bsim_lean,                           "n443935
-          bukrs    LIKE zbkpf-bukrs,                         "n443935
-          bwkey    LIKE zbsim-bwkey,                         "n443935
-          matnr    LIKE zbsim-matnr,                         "n443935
-          bwtar    LIKE zbsim-bwtar,                         "n443935
-          shkzg    LIKE zbsim-shkzg,                         "n443935
-          meins    LIKE zbsim-meins,                         "n443935
-          budat    LIKE zbsim-budat,                         "n443935
-          blart    LIKE zbsim-blart,                         "n443935
-          buzei    LIKE zbsim-buzei,                         "n497992
+          bukrs    LIKE zbkpf-bukrs,                        "n443935
+          bwkey    LIKE zbsim-bwkey,                        "n443935
+          matnr    LIKE zbsim-matnr,                        "n443935
+          bwtar    LIKE zbsim-bwtar,                        "n443935
+          shkzg    LIKE zbsim-shkzg,                        "n443935
+          meins    LIKE zbsim-meins,                        "n443935
+          budat    LIKE zbsim-budat,                        "n443935
+          blart    LIKE zbsim-blart,                        "n443935
+          buzei    LIKE zbsim-buzei,                        "n497992
                                                             "n443935
-          awkey    LIKE zbkpf-awkey,                         "n443935
-          belnr    LIKE zbsim-belnr,                         "n443935
-          gjahr    LIKE zbsim-gjahr,                         "n443935
-          menge    LIKE zbsim-menge,                         "n443935
-          dmbtr    LIKE zbsim-dmbtr,                         "n443935
+          awkey    LIKE zbkpf-awkey,                        "n443935
+          belnr    LIKE zbsim-belnr,                        "n443935
+          gjahr    LIKE zbsim-gjahr,                        "n443935
+          menge    LIKE zbsim-menge,                        "n443935
+          dmbtr    LIKE zbsim-dmbtr,                        "n443935
           accessed TYPE c,                                  "n443935
           tabix    LIKE sy-tabix,                           "n443935
         END OF stype_bsim_lean,                             "n443935
                                                             "n443935
         stab_bsim_lean TYPE STANDARD TABLE OF               "n443935
-           stype_bsim_lean                                  "n443935
-           WITH DEFAULT KEY.                                "n443935
+     stype_bsim_lean                                        "n443935
+     WITH DEFAULT KEY.                                      "n443935
 
 DATA : g_t_bsim_lean TYPE stab_bsim_lean,                   "n443935
        g_s_bsim_lean TYPE stype_bsim_lean,                  "n443935
@@ -590,16 +610,16 @@ DATA : g_t_bsim_lean TYPE stab_bsim_lean,                   "n443935
 
 * for the control break                                     "n443935
 TYPES : BEGIN OF stype_mseg_group,                          "n443935
-          mblnr LIKE zmkpf-mblnr,                            "n443935
-          mjahr LIKE zmkpf-mjahr,                            "n443935
-          bukrs LIKE zbkpf-bukrs,                            "n443935
-          bwkey LIKE zbsim-bwkey,                            "n443935
-          matnr LIKE zmseg-matnr,                            "n443935
-          bwtar LIKE zmseg-bwtar,                            "n443935
-          shkzg LIKE zmseg-shkzg,                            "n443935
-          meins LIKE zmseg-meins,                            "n443935
-          budat LIKE zmkpf-budat,                            "n443935
-          blart LIKE zmkpf-blart,                            "n443935
+          mblnr LIKE zmkpf-mblnr,                           "n443935
+          mjahr LIKE zmkpf-mjahr,                           "n443935
+          bukrs LIKE zbkpf-bukrs,                           "n443935
+          bwkey LIKE zbsim-bwkey,                           "n443935
+          matnr LIKE zmseg-matnr,                           "n443935
+          bwtar LIKE zmseg-bwtar,                           "n443935
+          shkzg LIKE zmseg-shkzg,                           "n443935
+          meins LIKE zmseg-meins,                           "n443935
+          budat LIKE zmkpf-budat,                           "n443935
+          blart LIKE zmkpf-blart,                           "n443935
         END OF stype_mseg_group.                            "n443935
                                                             "n443935
 DATA : g_s_mseg_old TYPE stype_mseg_group,                  "n443935
@@ -608,8 +628,8 @@ DATA : g_s_mseg_old TYPE stype_mseg_group,                  "n443935
 * Structure to separate AWKEY into MBLNR/MJAHR in a         "n443935
 * clean way.                                                "n443935
 DATA: BEGIN OF matkey,                                      "n443935
-        mblnr LIKE zmkpf-mblnr,                              "n443935
-        mjahr LIKE zmkpf-mjahr,                              "n443935
+        mblnr LIKE zmkpf-mblnr,                             "n443935
+        mjahr LIKE zmkpf-mjahr,                             "n443935
       END OF matkey.                                        "n443935
 
 * global contants
@@ -678,19 +698,19 @@ DATA g_flag_initialization(01) TYPE c.                      "n599218
 DATA g_flag_i_check(01)      TYPE c.                        "n599218
 
 DATA :
-       g_f_bwkey          LIKE zmbew-bwkey,                  "n443935
-       g_f_tabix          LIKE sy-tabix,                    "n443935
-       g_f_tabix_start    LIKE sy-tabix,                    "n443935
-       g_cnt_loop         LIKE sy-tabix,                    "n443935
-       g_cnt_mseg_entries LIKE sy-tabix,                    "n443935
-       g_cnt_bsim_entries LIKE sy-tabix,                    "n443935
-       g_cnt_mseg_done    LIKE sy-tabix.                    "n443935
+  g_f_bwkey          LIKE zmbew-bwkey,                      "n443935
+  g_f_tabix          LIKE sy-tabix,                         "n443935
+  g_f_tabix_start    LIKE sy-tabix,                         "n443935
+  g_cnt_loop         LIKE sy-tabix,                         "n443935
+  g_cnt_mseg_entries LIKE sy-tabix,                         "n443935
+  g_cnt_bsim_entries LIKE sy-tabix,                         "n443935
+  g_cnt_mseg_done    LIKE sy-tabix.                         "n443935
 
 * for the processing of tied empties                        "n497992
-DATA : g_f_werks_retail      LIKE      zt001w-werks.         "n497992
+DATA : g_f_werks_retail      LIKE      zt001w-werks.        "n497992
 
 * reference procedures for checking FI summarization        "n497992
-RANGES : g_ra_awtyp          FOR  zttypv-awtyp.              "n497992
+RANGES : g_ra_awtyp          FOR  zttypv-awtyp.             "n497992
 
 * global range tables for the database selection
 RANGES : g_ra_bwkey          FOR zt001k-bwkey,    "valuation area
@@ -744,23 +764,23 @@ DATA: g_t_bseg_key           TYPE      stab_bseg_key
 
 * separate time depending authorization for tax auditor     "n486477
 * define working areas for time depending authority check   "n486477
-DATA : g_f_budat      LIKE zbsim-budat,                      "n486477
-       g_f_budat_work LIKE zbsim-budat.                      "n486477
+DATA : g_f_budat      LIKE zbsim-budat,                     "n486477
+       g_f_budat_work LIKE zbsim-budat.                     "n486477
                                                             "n486477
 TYPES : BEGIN OF stype_bukrs,                               "n486477
-          bukrs LIKE zt001-bukrs,                            "n486477
+          bukrs LIKE zt001-bukrs,                           "n486477
         END OF stype_bukrs,                                 "n486477
                                                             "n486477
         stab_bukrs TYPE STANDARD TABLE OF                   "n486477
-       stype_bukrs WITH DEFAULT KEY.                        "n486477
+ stype_bukrs WITH DEFAULT KEY.                              "n486477
                                                             "n486477
 DATA : g_t_bukrs TYPE stab_bukrs,                           "n486477
        g_s_bukrs TYPE stype_bukrs.                          "n486477
                                                             "n486477
 TYPES : BEGIN OF stype_work,                                "n486477
-          werks LIKE zt001w-werks,                           "n486477
-          bwkey LIKE zt001k-bwkey,                           "n486477
-          bukrs LIKE zt001-bukrs,                            "n486477
+          werks LIKE zt001w-werks,                          "n486477
+          bwkey LIKE zt001k-bwkey,                          "n486477
+          bukrs LIKE zt001-bukrs,                           "n486477
         END OF stype_work.                                  "n486477
                                                             "n486477
 DATA : g_s_t001w TYPE stype_work,                           "n486477
@@ -774,21 +794,21 @@ DATA : g_flag_tpcuser(01) TYPE c,                           "n486477
 
 * for the representation of tied empties                    "n547170
 * range table for special indicators of field MSEG-XAUTO    "n547170
-RANGES : g_ra_xauto          FOR  zmseg-xauto.               "n547170
+RANGES : g_ra_xauto          FOR  zmseg-xauto.              "n547170
                                                             "n547170
-DATA   : g_f_zeile           LIKE  zmseg-zeile.              "n547170
+DATA   : g_f_zeile           LIKE  zmseg-zeile.             "n547170
                                                             "n547170
 TYPES : BEGIN OF stype_mseg_xauto,                          "n547170
-          mblnr LIKE zmseg-mblnr,                            "n547170
-          mjahr LIKE zmseg-mjahr,                            "n547170
-          zeile LIKE zmseg-zeile,                            "n547170
-          matnr LIKE zmseg-matnr,                            "n547170
-          xauto LIKE zmseg-xauto,                            "n547170
+          mblnr LIKE zmseg-mblnr,                           "n547170
+          mjahr LIKE zmseg-mjahr,                           "n547170
+          zeile LIKE zmseg-zeile,                           "n547170
+          matnr LIKE zmseg-matnr,                           "n547170
+          xauto LIKE zmseg-xauto,                           "n547170
         END OF stype_mseg_xauto,                            "n547170
                                                             "n547170
         stab_mseg_xauto TYPE STANDARD TABLE OF              "n547170
-            stype_mseg_xauto                                "n547170
-            WITH DEFAULT KEY.                               "n547170
+      stype_mseg_xauto                                      "n547170
+      WITH DEFAULT KEY.                                     "n547170
                                                             "n547170
 * working area for the previous entry                       "n547170
 DATA : g_s_mseg_pr  TYPE stype_mseg_xauto,                  "n547170
@@ -884,7 +904,7 @@ TYPES : BEGIN OF stype_mseg_lean,
           cputm        LIKE zmkpf-cputm,
           usnam        LIKE zmkpf-usnam,
 * process 'goods receipt/issue slip' as hidden field        "n450596
-          xabln        LIKE zmkpf-xabln,                     "n450596
+          xabln        LIKE zmkpf-xabln,                    "n450596
 
           lbbsa        LIKE zt156m-lbbsa,
           bwagr        LIKE zt156s-bwagr,
@@ -919,7 +939,7 @@ TYPES : BEGIN OF stype_mseg_lean,
           xauto        LIKE zmseg-xauto,
           kzbws        LIKE zmseg-kzbws,
           xobew        LIKE zmseg-xobew,
-"          special flag for retail                          "n497992
+          "          special flag for retail                          "n497992
           retail(01)   TYPE c,                              "n497992
 
 * define the fields for the IO-OIL specific functions       "n599218 A
@@ -927,7 +947,7 @@ TYPES : BEGIN OF stype_mseg_lean,
 *          mseg-oiglsku      QUAN         13                "n599218 A
           oiglcalc(01) TYPE c,                              "n599218 A
           oiglsku(07)  TYPE p DECIMALS 3,                   "n599218 A
-          insmk        LIKE zmseg-insmk,                     "n599218 A
+          insmk        LIKE zmseg-insmk,                    "n599218 A
 
 * the following fields are used for the selection of
 * the reversal movements
@@ -940,7 +960,7 @@ TYPES : BEGIN OF stype_mseg_lean,
 
 
 
-        "INCLUDE           TYPE      stype_mb5b_add.
+"INCLUDE           TYPE      stype_mb5b_add.
 
 
 
@@ -1024,7 +1044,7 @@ TYPES : BEGIN OF stype_totals_flat,
           werks        LIKE zmseg-werks,
           charg        LIKE zmseg-charg,
           sobkz        LIKE zmslb-sobkz,
-          name1        LIKE zt001w-name1,                    "n999530
+          name1        LIKE zt001w-name1,                   "n999530
 
           start_date   LIKE sy-datlo,
           end_date     LIKE sy-datlo,
@@ -1044,7 +1064,7 @@ TYPES:    anfwert(09)   TYPE p DECIMALS 2,
           END OF stype_totals_flat,
 
           stab_totals_flat TYPE STANDARD TABLE OF stype_totals_flat
-           WITH DEFAULT KEY.
+   WITH DEFAULT KEY.
 
 DATA : g_s_totals_flat TYPE stype_totals_flat,
        g_t_totals_flat TYPE stab_totals_flat.
@@ -1090,7 +1110,7 @@ DATA : g_s_bestand        TYPE stype_bestand,
        g_s_bestand_detail TYPE stype_bestand,
        g_t_bestand_detail TYPE stab_bestand.
 
-DATA : l_f_meins_external       TYPE  zmara-meins.           "n1018717
+DATA : l_f_meins_external       TYPE  zmara-meins.          "n1018717
 
 
 * global working areas data from MSEG and MKPF
@@ -1106,8 +1126,8 @@ TYPES :    tabix LIKE sy-tabix,                             "n451923
            END OF stype_mseg_work,                          "n451923
                                                             "n451923
            stab_mseg_work TYPE STANDARD TABLE OF            "n451923
-        stype_mseg_work                                     "n451923
-        WITH DEFAULT KEY.                                   "n451923
+stype_mseg_work                                             "n451923
+WITH DEFAULT KEY.                                           "n451923
                                                             "n451923
 DATA : g_t_mseg_work TYPE stab_mseg_work,                   "n443935
        g_s_mseg_work TYPE stype_mseg_work.                  "n443935
@@ -1130,8 +1150,8 @@ TYPES : BEGIN OF stype_color_fields,
         END OF stype_color_fields,
 
         stab_color_fields TYPE STANDARD TABLE OF
-              stype_color_fields
-              WITH DEFAULT KEY.
+        stype_color_fields
+        WITH DEFAULT KEY.
 
 DATA: g_t_color_fields       TYPE      stab_color_fields
                              WITH HEADER LINE.
@@ -1154,17 +1174,17 @@ DATA: BEGIN OF imsweg OCCURS 1000,
         dmbtr        LIKE zmseg-dmbtr,
         dmbum        LIKE zmseg-dmbum,
         bustm        LIKE zmseg-bustm,
-        bustw        LIKE zmseg-bustw,                       "147374
+        bustw        LIKE zmseg-bustw,                      "147374
 
 * define the fields for the IO-OIL specific functions       "n599218 A
 *       mseg-oiglcalc        CHAR          1                "n599218 A
 *       mseg-oiglsku         QUAN         13                "n599218 A
         oiglcalc(01) TYPE c,                                "n599218 A
         oiglsku(07)  TYPE p DECIMALS 3,                     "n599218 A
-        insmk        LIKE zmseg-insmk.                       "n599218 A
+        insmk        LIKE zmseg-insmk.                      "n599218 A
 "ENHANCEMENT-POINT ehp605_rm07mldd_21 SPOTS es_rm07mlbd STATIC .
 DATA:
       END OF imsweg.
 *
 ** User settings for the checkboxes                          "n547170
-DATA: oref_settings TYPE REF TO zcl_mmim_userdefaults.       "n547170
+DATA: oref_settings TYPE REF TO zcl_mmim_userdefaults.      "n547170

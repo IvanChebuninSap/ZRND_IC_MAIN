@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_DTEL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD04V>
+    <ROLLNAME>ZMB5B_ARCHIVE</ROLLNAME>
+    <DDLANGUAGE>E</DDLANGUAGE>
+    <DOMNAME>XFELD</DOMNAME>
+    <HEADLEN>29</HEADLEN>
+    <SCRLEN1>07</SCRLEN1>
+    <SCRLEN2>16</SCRLEN2>
+    <SCRLEN3>29</SCRLEN3>
+    <DDTEXT>Include Archived MM Documents</DDTEXT>
+    <REPTEXT>Include Archived MM Documents</REPTEXT>
+    <SCRTEXT_S>Archive</SCRTEXT_S>
+    <SCRTEXT_M>Archived MM Docs</SCRTEXT_M>
+    <SCRTEXT_L>Include Archived MM Documents</SCRTEXT_L>
+    <DTELMASTER>E</DTELMASTER>
+    <REFKIND>D</REFKIND>
+   </DD04V>
+  </asx:values>
+ </asx:abap>
+</abapGit>

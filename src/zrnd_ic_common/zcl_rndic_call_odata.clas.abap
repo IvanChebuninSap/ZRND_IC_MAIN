@@ -5,76 +5,60 @@ CLASS zcl_rndic_call_odata DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS call_odata_test.
+    INTERFACES zif_call_odata_sel_single.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+        METHODS call_odata
+            IMPORTING
+                iv_url type string
+            EXPORTING
+                ev_xml TYPE xstring.
 ENDCLASS.
-
 
 
 CLASS ZCL_RNDIC_CALL_ODATA IMPLEMENTATION.
 
+  METHOD call_odata.
 
-  METHOD call_odata_test.
-
-
-*    /iwfnd/cl_sutil_client_proxy=>get_instance( )->web_request(
-*
-*         EXPORTING
-*
-*            it_request_header = VALUE /iwfnd/sutil_property_t( ( name  = if_http_header_fields_sap=>request_method
-*                                                                                                    value = if_http_entity=>co_request_method_get
-*                                                                                                  ) (
-*                                                                                                   name  = if_http_header_fields_sap=>request_uri
-*                                                                                                   value = | https://services.odata.org/V2/OData/OData.svc/ |
-*                                                                                             )  )
-*         IMPORTING
-*                ev_status_code    = DATA(lv_status_code)
-*                ev_response_body  = DATA(rv_xbody)
-*                ev_error_text     = DATA(lv_error_text)
-*   ).
-
-DATA: client TYPE REF TO if_http_client,
-      url TYPE string,
-      xml TYPE xstring,
-      c_xml TYPE string.
-
-
-
-url =
-    | http://evbyminsd74b3.minsk.epam.com:8000/sap/opu/odata/sap/zgw100_xx_so_srv/?sap-client=182 |
-      .
-
-
+DATA: lo_client TYPE REF TO if_http_client.
 
 ***Create the HTTP client
   TRY.
       CALL METHOD cl_http_client=>create_by_url
         EXPORTING
-          url    = url
+          url    = iv_url
         IMPORTING
-          client = client
+          client = lo_client
         EXCEPTIONS
           OTHERS = 1.
 
-      client->send( ).
-      client->receive( ).
+      lo_client->send( ).
+      lo_client->receive( ).
 
-      xml = client->response->get_data( ).
-      client->response->GET_STATUS( IMPORTING code = DATA(lv_code)
-                                              reason = DATA(lv_reason) ).
-      WRITE: / 'HTTP Status: ', lv_code, lv_reason.
-
-      client->close( ).
+      ev_xml = lo_client->response->get_data( ).
+*      lo_client->response->GET_STATUS( IMPORTING code = DATA(lv_code)
+*                                              reason = DATA(lv_reason) ).
+      lo_client->close( ).
     CATCH cx_root.
-      WRITE: / 'HTTP Connection error: '.
+      CLEAR  ev_xml.
+
   ENDTRY.
 
+  ENDMETHOD.
 
+  METHOD zif_call_odata_sel_single~call_single_select.
 
+        DATA lv_url TYPE string.
 
-    BREAK-POINT.
+        lv_url =  zif_call_odata_sel_single=>gc_select_single_srv &&
+                      zif_call_odata_sel_single=>gc_param_table_name && |'| && iv_table_name && |'| && |&| &&
+                      zif_call_odata_sel_single=>gc_param_field_list && |'| && iv_field_list && |'| && |&| &&
+                      zif_call_odata_sel_single=>gc_param_where_condition && |'| && iv_where_clause && |'|.
+
+       me->call_odata(  EXPORTING iv_url = lv_url
+                                     IMPORTING ev_xml = DATA(lv_xml) ).
 
   ENDMETHOD.
+
 ENDCLASS.
