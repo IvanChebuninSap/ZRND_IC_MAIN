@@ -106,14 +106,33 @@ CLASS zcl_mmim_userdefaults IMPLEMENTATION.
 
 
 
-     ZCL_TODO_LIST=>replace_select( ).
+*      zcl_todo_list=>replace_select( ).
 
 *      SELECT element active FROM esdus
 *                            INTO CORRESPONDING FIELDS OF TABLE t_esdus
 *                            WHERE uname  = i_uname
 *                              AND action = i_action.
 
+      DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+      DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
 
+
+      INSERT VALUE #(  low = i_uname ) INTO TABLE lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'UNAME' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      INSERT VALUE #(  low = i_action ) INTO TABLE lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'ACTION' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'ESDUS_01'
+                                                                                                           it_select_opt = lt_prop_sel_opt
+                                                                                                           iv_db_connection = CONV #( '' )
+                                                                                   )->process( IMPORTING et_output = t_esdus ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  t_esdus.
+      ENDTRY.
 
 
     ENDIF.
@@ -195,15 +214,15 @@ CLASS zcl_mmim_userdefaults IMPLEMENTATION.
       MOVE-CORRESPONDING <wa> TO ls_dbtab.             "ELEMENT and ACTIVE
       CASE <wa>-update.
         WHEN 'I'.
-        zcl_todo_list=>ivan( ).
-        "  INSERT INTO esdus VALUES ls_dbtab.
+          zcl_todo_list=>ivan( ).
+          "  INSERT INTO esdus VALUES ls_dbtab.
           <wa>-update = space.
         WHEN 'U'.
-        zcl_todo_list=>ivan( ).
+          zcl_todo_list=>ivan( ).
           "MODIFY esdus FROM ls_dbtab.
           <wa>-update = space.
         WHEN 'D'.
-        zcl_todo_list=>ivan( ).
+          zcl_todo_list=>ivan( ).
           "DELETE esdus FROM ls_dbtab.
           DELETE TABLE t_esdus FROM <wa>.
       ENDCASE.
@@ -325,11 +344,36 @@ CLASS zcl_mmim_userdefaults IMPLEMENTATION.
 ************************************************************************
     t_prefetch_action = it_action.
     IF NOT t_prefetch_action IS INITIAL.
-       zcl_todo_list=>replace_select( ).
+*      zcl_todo_list=>replace_select( ).
 *      SELECT * FROM esdus INTO TABLE t_prefetch
 *               FOR ALL ENTRIES IN t_prefetch_action
 *               WHERE uname  = i_uname
 *                 AND action = t_prefetch_action-table_line.
+
+      DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+      DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+      INSERT VALUE #(  low = i_uname ) INTO TABLE lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'UNAME' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      LOOP AT t_prefetch_action ASSIGNING FIELD-SYMBOL(<lv_prefetch_action>).
+        INSERT VALUE #(  low = <lv_prefetch_action> ) INTO TABLE lt_sel_opt.
+      ENDLOOP.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'ACTION' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'ESDUS_02'
+                                                                                                           it_select_opt = lt_prop_sel_opt
+                                                                                                           iv_db_connection = CONV #( '' )
+                                                                                   )->process( IMPORTING et_output = t_prefetch ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  t_prefetch.
+      ENDTRY.
+
+
     ENDIF.
     prefetch_user = i_uname.
   ENDMETHOD.

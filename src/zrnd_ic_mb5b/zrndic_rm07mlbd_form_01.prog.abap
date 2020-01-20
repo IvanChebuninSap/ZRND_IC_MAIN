@@ -142,7 +142,7 @@ FORM aktuelle_bestaende.
       CATCH cx_auth_not_authorized.
         gv_not_authorized = abap_true.
     ENDTRY.
-  ENDIF.                                                             "^n_1899544
+  ENDIF.                                                    "^n_1899544
 
 * delete the range tables for the creation of table g_t_organ
   IF  g_t_organ[] IS INITIAL.                               "n433765
@@ -153,46 +153,173 @@ FORM aktuelle_bestaende.
 * Begin of correction 1916359
 * Retrieve plant records for which the user has no authority to issue the corresponding authority message
 * Only for compatibility reasons after code pushdown of authority check to DB
+
+
+* following select uses same conditions so declare it here
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+
+
   IF gv_where_clause IS NOT INITIAL AND gv_not_authorized = abap_false AND NOT bwbst = 'X'.
     IF lgbst = 'X' AND xchar = ' '.
       PERFORM hdb_check_table USING 'MARD' ''.
-      zcl_todo_list=>replace_select( ).
+*      zcl_todo_list=>replace_select( ).
 *      SELECT DISTINCT werks FROM mard INTO TABLE lt_plant  CONNECTION (dbcon)
 *                                                 WHERE werks IN g_ra_werks
 *                                                 AND NOT (gv_where_clause)
 *                                                 AND lgort IN g_ra_lgort
 *                                                 AND matnr IN matnr.
+
+      MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MARD_01'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = lt_plant ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  lt_plant.
+      ENDTRY.
+
+
+
     ELSEIF lgbst = 'X' AND xchar = 'X' AND xnomchb IS NOT INITIAL.
       PERFORM hdb_check_table USING 'MCHA' ''.              "n1710850
-      zcl_todo_list=>replace_select( ).
+*      zcl_todo_list=>replace_select( ).
 *      SELECT DISTINCT werks FROM mcha INTO TABLE lt_plant CONNECTION (dbcon)
 *                                                 WHERE werks IN g_ra_werks
 *                                                 AND NOT (gv_where_clause)
 *                                                 AND matnr IN matnr
 *                                                 AND charg IN charg.
+
+      MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MCHA_01'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = lt_plant ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  lt_plant.
+      ENDTRY.
+
     ELSEIF sbbst = 'X'.
       CASE    sobkz.
         WHEN  'O'.
           PERFORM hdb_check_table USING 'MSLB' ''.
-          zcl_todo_list=>replace_select( ).
+*          zcl_todo_list=>replace_select( ).
 *          SELECT DISTINCT werks FROM mslb INTO TABLE lt_plant CONNECTION (dbcon)
 *                                                     WHERE werks IN g_ra_werks
 *                                                     AND NOT (gv_where_clause)
 *                                                     AND matnr IN matnr
 *                                                     AND charg IN charg
 *                                                     AND sobkz = sobkz.
+
+          MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = CONV #( sobkz ) ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+
+
+          TRY.
+              NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSLB_01'
+                                                                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                                                                         iv_db_connection = CONV #( dbcon )
+                                                                                                                                                           )->process( IMPORTING et_output = lt_plant ).
+            CATCH zcx_process_mb5b_select.
+              CLEAR  lt_plant.
+          ENDTRY.
+
+
+
         WHEN  'V' OR  'W'.
           PERFORM hdb_check_table USING 'MSKU' ''.
-          zcl_todo_list=>replace_select( ).
+*          zcl_todo_list=>replace_select( ).
 *          SELECT DISTINCT werks FROM msku INTO TABLE lt_plant CONNECTION (dbcon)
 *                                                     WHERE werks IN g_ra_werks
 *                                                     AND NOT (gv_where_clause)
 *                                                     AND matnr IN matnr
 *                                                     AND charg IN charg
 *                                                     AND sobkz = sobkz.
+
+          MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = CONV #( sobkz ) ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          TRY.
+              NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSKU_01'
+                                                                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                                                                         iv_db_connection = CONV #( dbcon )
+                                                                                                                                                           )->process( IMPORTING et_output = lt_plant ).
+            CATCH zcx_process_mb5b_select.
+              CLEAR  lt_plant.
+          ENDTRY.
+
         WHEN  'K' OR  'M'.
           PERFORM hdb_check_table USING 'MKOL' ''.
-          zcl_todo_list=>replace_select( ).
+*          zcl_todo_list=>replace_select( ).
 *          SELECT DISTINCT werks FROM mkol INTO TABLE lt_plant CONNECTION (dbcon)
 *                                                     WHERE werks IN g_ra_werks
 *                                                     AND NOT (gv_where_clause)
@@ -200,9 +327,44 @@ FORM aktuelle_bestaende.
 *                                                     AND matnr IN matnr
 *                                                     AND charg IN charg
 *                                                     AND sobkz = sobkz.
+
+          MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = CONV #( sobkz ) ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          TRY.
+              NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKOL_01'
+                                                                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                                                                         iv_db_connection = CONV #( dbcon )
+                                                                                                                                                           )->process( IMPORTING et_output = lt_plant ).
+            CATCH zcx_process_mb5b_select.
+              CLEAR  lt_plant.
+          ENDTRY.
+
+
         WHEN  'Q'.
           PERFORM hdb_check_table USING 'MSPR' ''.
-          zcl_todo_list=>replace_select( ).
+*          zcl_todo_list=>replace_select( ).
 *          SELECT DISTINCT werks FROM mspr INTO TABLE lt_plant CONNECTION (dbcon)
 *                                                     WHERE werks IN g_ra_werks
 *                                                     AND NOT (gv_where_clause)
@@ -210,9 +372,45 @@ FORM aktuelle_bestaende.
 *                                                     AND matnr IN matnr
 *                                                     AND charg IN charg
 *                                                     AND sobkz = sobkz.
+
+          MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = CONV #( sobkz ) ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          TRY.
+              NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSPR_01'
+                                                                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                                                                         iv_db_connection = CONV #( dbcon )
+                                                                                                                                                           )->process( IMPORTING et_output = lt_plant ).
+            CATCH zcx_process_mb5b_select.
+              CLEAR  lt_plant.
+          ENDTRY.
+
+
+
         WHEN  'E' OR 'T'.
           PERFORM hdb_check_table USING 'MSKA' ''.
-          zcl_todo_list=>replace_select( ).
+*          zcl_todo_list=>replace_select( ).
 *          SELECT DISTINCT werks FROM mska INTO TABLE lt_plant CONNECTION (dbcon)
 *                                                     WHERE werks IN g_ra_werks
 *                                                     AND NOT (gv_where_clause) "n_1899544
@@ -220,6 +418,42 @@ FORM aktuelle_bestaende.
 *                                                     AND matnr IN matnr
 *                                                     AND charg IN charg
 *                                                     AND sobkz = sobkz.
+
+
+          MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          INSERT VALUE #( low = CONV #( sobkz ) ) INTO TABLE lt_sel_opt.
+          INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+          CLEAR lt_sel_opt.
+
+          TRY.
+              NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSKA_01'
+                                                                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                                                                         iv_db_connection = CONV #( dbcon )
+                                                                                                                                                           )->process( IMPORTING et_output = lt_plant ).
+            CATCH zcx_process_mb5b_select.
+              CLEAR  lt_plant.
+          ENDTRY.
+
+
         WHEN  OTHERS.
       ENDCASE.
     ENDIF.
@@ -231,7 +465,7 @@ FORM aktuelle_bestaende.
 
   IF      bwbst = 'X'.
 *   select the valuated stocks
-   PERFORM                  aktuelle_bst_bwbst.
+    PERFORM                  aktuelle_bst_bwbst.
 
   ELSEIF lgbst = 'X'.
 *   all own stock from storage locations or batches
@@ -262,7 +496,7 @@ FORM aktuelle_bestaende.
         "MESSAGE s290.
         PERFORM              anforderungsbild.
     ENDCASE.
-   " END-ENHANCEMENT-SECTION.
+    " END-ENHANCEMENT-SECTION.
   ENDIF.
 
 * create table g_t_organ with the plants and valuation areas from
@@ -282,16 +516,50 @@ FORM aktuelle_bst_lgbst_mard.
 
   "ENHANCEMENT-SECTION     AKTUELLE_BST_LGBST_MARD_01 SPOTS ES_RM07MLBD.
   PERFORM hdb_check_table USING 'MARD' ''.
-  IF gv_not_authorized = abap_false.                               "n_1899544
-  zcl_todo_list=>replace_select( ).
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM mard INTO CORRESPONDING FIELDS OF TABLE imard CONNECTION (dbcon) "n1710850
 *                                           WHERE werks IN g_ra_werks
 *                                           AND   (gv_where_clause) "n_1899544
 *                                           AND   lgort IN g_ra_lgort
 *                                           AND   matnr IN matnr.
-  ELSE.                                                            "n_1899544
-    sy-subrc = 4.                                                  "n_1899544
-  ENDIF.                                                           "n_1899544
+
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MARD_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = imard ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  imard.
+    ENDTRY.
+
+
+
+  ELSE.                                                     "n_1899544
+    sy-subrc = 4.                                           "n_1899544
+  ENDIF.                                                    "n_1899544
   "END-ENHANCEMENT-SECTION.
 
   IF sy-subrc NE 0.          "no records found ?
@@ -301,18 +569,18 @@ FORM aktuelle_bst_lgbst_mard.
   ENDIF.
 
 * does the user has the the authority for the found entries ?
-  LOOP AT imard.                                                  "vn_1899544
+  LOOP AT imard.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
 * Only for compatibility reasons after code pushdown of authority check to DB
     PERFORM f9000_auth_plant_check USING imard-werks.       "n_1916359
 
-      PERFORM  f9200_collect_plant     USING  imard-werks.
+    PERFORM  f9200_collect_plant     USING  imard-werks.
 
-      PERFORM  f9400_material_key      USING  imard-matnr.
+    PERFORM  f9400_material_key      USING  imard-matnr.
 
-  ENDLOOP.                                                        "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
   DESCRIBE TABLE imard       LINES g_f_cnt_lines.
   IF  g_f_cnt_lines IS INITIAL.       "no records left  ?
@@ -338,15 +606,52 @@ FORM aktuelle_bst_lgbst_xchar.
 * read the stock table mchb for batches
   PERFORM hdb_check_table USING 'MCHB' ''.                  "n1710850
 
-  IF gv_not_authorized = abap_false.                         "n_1899544
-  zcl_todo_list=>replace_select( ).
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM mchb INTO CORRESPONDING FIELDS OF TABLE imchb CONNECTION (dbcon) "n1710850
 *                               WHERE   werks  IN  g_ra_werks
 *                                 AND   (gv_where_clause)     "n_1899544
 *                               AND   lgort  IN  g_ra_lgort
 *                               AND   matnr  IN  matnr
 *                               AND   charg  IN  charg.
-  ENDIF.                                                     "n_1899544
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MCHB_01'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = imchb ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  imchb.
+    ENDTRY.
+
+
+
+  ENDIF.                                                    "n_1899544
 
   DESCRIBE TABLE imchb       LINES  g_f_cnt_lines.
   IF g_f_cnt_lines IS INITIAL         "no records found ?
@@ -361,14 +666,45 @@ FORM aktuelle_bst_lgbst_xchar.
   IF xnomchb IS NOT INITIAL.                                "v_n1404822
 * read the table mcha for batches
     PERFORM hdb_check_table USING 'MCHA' ''.                "n1710850
-    IF gv_not_authorized = abap_false.                       "n_1899544
-    zcl_todo_list=>replace_select( ).
+    IF gv_not_authorized = abap_false.                      "n_1899544
+*      zcl_todo_list=>replace_select( ).
 *      SELECT * FROM mcha INTO CORRESPONDING FIELDS OF TABLE imcha CONNECTION (dbcon) "n1710850
 *                                WHERE   werks  IN  g_ra_werks
 *                                  AND   (gv_where_clause)    "n_1899544
 *                                  AND   matnr  IN  matnr
 *                                  AND   charg  IN  charg.
-    ENDIF.                                                   "n_1899544
+
+      CLEAR lt_prop_sel_opt.
+
+      MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+
+      MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+      INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+      INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+      CLEAR lt_sel_opt.
+
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MCHA_02'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = imcha ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  imcha.
+      ENDTRY.
+
+
+    ENDIF.                                                  "n_1899544
 
     DESCRIBE TABLE imcha       LINES  g_f_cnt_lines.
     IF g_f_cnt_lines IS INITIAL.         "no records found ?
@@ -378,7 +714,7 @@ FORM aktuelle_bst_lgbst_xchar.
     ENDIF.
 
 * process working table with the batches
-    LOOP AT imcha.                                           "vn_1899544
+    LOOP AT imcha.                                          "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
@@ -389,19 +725,19 @@ FORM aktuelle_bst_lgbst_xchar.
 
       PERFORM  f9400_material_key      USING  imcha-matnr.
 
-    ENDLOOP.                                                 "^n_1899544
+    ENDLOOP.                                                "^n_1899544
 
   ENDIF.                                                    "^_n1404822
 
 
 * process working table with the batches
-  LOOP AT imchb.                                             "vn_1899544
+  LOOP AT imchb.                                            "vn_1899544
 
     PERFORM  f9200_collect_plant     USING  imchb-werks.
 
     PERFORM  f9400_material_key      USING  imchb-matnr.
 
-  ENDLOOP.                                                   "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
 ENDFORM.                     "aktuelle_bst_lgbst_xchar
 
@@ -417,13 +753,52 @@ FORM aktuelle_bst_sbbst_o.
 *            nur auf Werksebene.
   PERFORM hdb_check_table USING 'MSLB' ''.                  "n1710850
   IF gv_not_authorized = abap_false.                        "n_1899544
-  zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM mslb INTO CORRESPONDING FIELDS OF TABLE xmslb CONNECTION (dbcon) "n1710850
 *                               WHERE  werks  IN  g_ra_werks
 *                                 AND  (gv_where_clause)     "n_1899544
 *                               AND  matnr  IN  matnr
 *                               AND  charg  IN  charg
 *                               AND  sobkz  =   'O'.
+
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  'O'  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSLB_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = xmslb ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  xmslb.
+    ENDTRY.
+
+
   ELSE.                                                     "n_1899544
     sy-subrc = 4.                                           "n_1899544
   ENDIF.                                                    "n_1899544
@@ -435,7 +810,7 @@ FORM aktuelle_bst_sbbst_o.
   ENDIF.
 
 * process the found records special stock vendor
-  LOOP AT xmslb.                                             "vn_1899544
+  LOOP AT xmslb.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
@@ -443,11 +818,11 @@ FORM aktuelle_bst_sbbst_o.
     PERFORM f9000_auth_plant_check USING xmslb-werks.       "n_1916359
 
 *     fill range table g_0000_ra_werks if it is still empty
-      PERFORM  f9200_collect_plant     USING  xmslb-werks.
+    PERFORM  f9200_collect_plant     USING  xmslb-werks.
 
-      PERFORM  f9400_material_key      USING  xmslb-matnr.
+    PERFORM  f9400_material_key      USING  xmslb-matnr.
 
-  ENDLOOP.                                                   "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
 * error, if no records are left
   DESCRIBE TABLE xmslb       LINES g_f_cnt_lines.
@@ -487,17 +862,56 @@ FORM aktuelle_bst_sbbst_v_w.
 *---------------- Sonderbestand Kundenkonsignation --------------------*
 *   elseif sobkz = 'V' or sobkz = 'W'.
   PERFORM hdb_check_table USING 'MSKU' ''.                  "n1710850
-  IF gv_not_authorized = abap_false.                            "n_1899544
-  zcl_todo_list=>replace_select( ).
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM msku INTO CORRESPONDING FIELDS OF TABLE xmsku CONNECTION (dbcon) "n1710850
 *                                       WHERE werks IN g_ra_werks
 *                                       AND   (gv_where_clause)  "n_1899544
 *                                     AND   matnr IN matnr
 *                                     AND   charg IN charg
 *                                     AND   sobkz EQ sobkz.
-  ELSE.                                                         "n_1899544
-    sy-subrc = 4.                                               "n_1899544
-  ENDIF.                                                        "n_1899544
+
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  sobkz  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSKU_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = xmsku ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  xmsku.
+    ENDTRY.
+
+
+  ELSE.                                                     "n_1899544
+    sy-subrc = 4.                                           "n_1899544
+  ENDIF.                                                    "n_1899544
 
   IF sy-subrc <> 0.          "no records found
     "MESSAGE s289.
@@ -506,18 +920,18 @@ FORM aktuelle_bst_sbbst_v_w.
   ENDIF.
 
 * process Special Stocks with Customer
-  LOOP AT xmsku.                                                "vn_1899544
+  LOOP AT xmsku.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
 * Only for compatibility reasons after code pushdown of authority check to DB
     PERFORM f9000_auth_plant_check USING xmsku-werks.       "n_1916359
 
-      PERFORM  f9200_collect_plant     USING  xmsku-werks.
+    PERFORM  f9200_collect_plant     USING  xmsku-werks.
 
-      PERFORM  f9400_material_key      USING  xmsku-matnr.
+    PERFORM  f9400_material_key      USING  xmsku-matnr.
 
-  ENDLOOP.                                                      "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
   DESCRIBE TABLE xmsku       LINES  g_f_cnt_lines.
   IF g_f_cnt_lines IS INITIAL.         "no records found
@@ -562,8 +976,8 @@ FORM aktuelle_bst_sbbst_k_m.
 *-------------- Sonderbestand Lieferantenkonsignation -----------------*
 *   elseif sobkz = 'K' or sobkz = 'M'.
   PERFORM hdb_check_table USING 'MKOL' ''.                  "n1710850
-  IF gv_not_authorized = abap_false.                              "n_1899544
-  zcl_todo_list=>replace_select( ).
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM mkol INTO CORRESPONDING FIELDS OF TABLE xmkol CONNECTION (dbcon) "n1710850
 *                                      WHERE werks IN g_ra_werks
 *                                      AND   (gv_where_clause)     "n_1899544
@@ -571,9 +985,51 @@ FORM aktuelle_bst_sbbst_k_m.
 *                                    AND   matnr IN matnr
 *                                    AND   charg IN charg
 *                                    AND   sobkz EQ sobkz.
-  ELSE.                                                           "n_1899544
-    sy-subrc = 4.                                                 "n_1899544
-  ENDIF.                                                          "n_1899544
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  sobkz  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKOL_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = xmkol ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  xmkol.
+    ENDTRY.
+
+  ELSE.                                                     "n_1899544
+    sy-subrc = 4.                                           "n_1899544
+  ENDIF.                                                    "n_1899544
 
   IF sy-subrc <> 0.          "no records found
     "MESSAGE s289.
@@ -582,18 +1038,18 @@ FORM aktuelle_bst_sbbst_k_m.
   ENDIF.
 
 * process Special Stocks from Vendor
-  LOOP AT xmkol.                                                  "vn_1899544
+  LOOP AT xmkol.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
 * Only for compatibility reasons after code pushdown of authority check to DB
     PERFORM f9000_auth_plant_check USING xmkol-werks.       "n_1916359
 
-      PERFORM  f9200_collect_plant     USING  xmkol-werks.
+    PERFORM  f9200_collect_plant     USING  xmkol-werks.
 
-      PERFORM  f9400_material_key      USING  xmkol-matnr.
+    PERFORM  f9400_material_key      USING  xmkol-matnr.
 
-  ENDLOOP.                                                        "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
   DESCRIBE TABLE xmkol       LINES  g_f_cnt_lines.
   IF g_f_cnt_lines IS INITIAL.         "no records found
@@ -638,8 +1094,8 @@ FORM aktuelle_bst_sbbst_q.
 *----------------------- Projektbestand -------------------------------*
 *   elseif sobkz = 'Q'.
   PERFORM hdb_check_table USING 'MSPR' ''.                  "n1710850
-  IF gv_not_authorized = abap_false.                              "n_1899544
-  zcl_todo_list=>replace_select( ).
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM mspr INTO CORRESPONDING FIELDS OF TABLE xmspr CONNECTION (dbcon) "n1710850
 *                                       WHERE werks IN g_ra_werks
 *                                       AND   (gv_where_clause)    "n_1899544
@@ -647,9 +1103,53 @@ FORM aktuelle_bst_sbbst_q.
 *                                     AND   matnr IN matnr
 *                                     AND   charg IN charg
 *                                     AND   sobkz EQ sobkz.
-  ELSE.                                                           "n_1899544
-    sy-subrc = 4.                                                 "n_1899544
-  ENDIF.                                                          "n_1899544
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  sobkz  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSPR_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = xmspr ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  xmspr.
+    ENDTRY.
+
+
+
+  ELSE.                                                     "n_1899544
+    sy-subrc = 4.                                           "n_1899544
+  ENDIF.                                                    "n_1899544
 
   IF sy-subrc <> 0.          "no record found
     "MESSAGE s289.
@@ -658,18 +1158,18 @@ FORM aktuelle_bst_sbbst_q.
   ENDIF.
 
 * process project stock
-  LOOP AT xmspr.                                                  "vn_1899544
+  LOOP AT xmspr.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
 * Only for compatibility reasons after code pushdown of authority check to DB
     PERFORM f9000_auth_plant_check USING xmspr-werks.       "n_1916359
 
-      PERFORM  f9200_collect_plant     USING  xmspr-werks.
+    PERFORM  f9200_collect_plant     USING  xmspr-werks.
 
-      PERFORM  f9400_material_key      USING  xmspr-matnr.
+    PERFORM  f9400_material_key      USING  xmspr-matnr.
 
-  ENDLOOP.                                                        "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
   DESCRIBE TABLE xmspr       LINES  g_f_cnt_lines.
   IF  g_f_cnt_lines IS INITIAL.        "no record left
@@ -706,9 +1206,9 @@ ENDFORM.:                     "aktuelle_bst_sbbst_q
 
 FORM aktuelle_bst_sbbst_e.
 *---------------------- Kundenauftragsbestand -------------------------*
-PERFORM hdb_check_table USING 'MSKA' ''.                    "n1710850
-IF gv_not_authorized = abap_false.                                "n_1899544
-zcl_todo_list=>replace_select( ).
+  PERFORM hdb_check_table USING 'MSKA' ''.                  "n1710850
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *  SELECT * FROM mska INTO CORRESPONDING FIELDS OF TABLE xmska CONNECTION (dbcon) "n1710850
 *                                     WHERE werks IN g_ra_werks
 *                                     AND   (gv_where_clause)      "n_1899544
@@ -716,18 +1216,60 @@ zcl_todo_list=>replace_select( ).
 *                                   AND   matnr IN matnr
 *                                   AND   charg IN charg
 *                                   AND   sobkz EQ sobkz.
-ELSE.                                                             "n_1899544
-  sy-subrc = 4.                                                   "n_1899544
-ENDIF.                                                            "n_1899544
 
-IF sy-subrc <> 0.            "no records found
-  "MESSAGE s289.
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+    INSERT VALUE #( low =  gv_where_clause  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low =  sobkz  ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSKA_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = xmska ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  xmska.
+    ENDTRY.
+
+  ELSE.                                                     "n_1899544
+    sy-subrc = 4.                                           "n_1899544
+  ENDIF.                                                    "n_1899544
+
+  IF sy-subrc <> 0.            "no records found
+    "MESSAGE s289.
 *   Kein Material in Selektion vorhanden.
-  PERFORM anforderungsbild.
-ENDIF.
+    PERFORM anforderungsbild.
+  ENDIF.
 
 * process Sales Order Stock
-LOOP AT xmska.                                                    "vn_1899544
+  LOOP AT xmska.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
@@ -738,34 +1280,34 @@ LOOP AT xmska.                                                    "vn_1899544
 
     PERFORM  f9400_material_key      USING  xmska-matnr.
 
-ENDLOOP.                                                          "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
-DESCRIBE TABLE xmska       LINES  g_f_cnt_lines.
-IF  g_f_cnt_lines IS INITIAL.        "no records left ?
-  "MESSAGE s289.
+  DESCRIBE TABLE xmska       LINES  g_f_cnt_lines.
+  IF  g_f_cnt_lines IS INITIAL.        "no records left ?
+    "MESSAGE s289.
 *   Kein Material in Selektion vorhanden.
-  PERFORM anforderungsbild.
-ENDIF.
+    PERFORM anforderungsbild.
+  ENDIF.
 
-SORT xmska.
-LOOP AT xmska.
-  MOVE-CORRESPONDING xmska TO imska.
-  COLLECT imska.
-ENDLOOP.
-FREE xmska. REFRESH xmska.
+  SORT xmska.
+  LOOP AT xmska.
+    MOVE-CORRESPONDING xmska TO imska.
+    COLLECT imska.
+  ENDLOOP.
+  FREE xmska. REFRESH xmska.
 
-IF xchar = ' '.
-  LOOP AT imska.
-    MOVE-CORRESPONDING imska TO imskax.
-    COLLECT imskax.
-  ENDLOOP.
-  SORT imskax.
-ELSEIF xchar = 'X'.
-  LOOP AT imska.
-    CHECK imska-charg IS INITIAL.
-    DELETE imska.
-  ENDLOOP.
-ENDIF.
+  IF xchar = ' '.
+    LOOP AT imska.
+      MOVE-CORRESPONDING imska TO imskax.
+      COLLECT imskax.
+    ENDLOOP.
+    SORT imskax.
+  ELSEIF xchar = 'X'.
+    LOOP AT imska.
+      CHECK imska-charg IS INITIAL.
+      DELETE imska.
+    ENDLOOP.
+  ENDIF.
 
 ENDFORM.                     "aktuelle_bst_sbbst_e
 
@@ -776,8 +1318,8 @@ ENDFORM.                     "aktuelle_bst_sbbst_e
 FORM aktuelle_bst_sbbst_t.
 *---------------------- Buchungskreisübergreifender Transitbestand ----*
   PERFORM hdb_check_table USING 'MSKA' ''.                  "n1710850
-  IF gv_not_authorized = abap_false.                              "n_1899544
-  zcl_todo_list=>replace_select( ).
+  IF gv_not_authorized = abap_false.                        "n_1899544
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM mska INTO CORRESPONDING FIELDS OF TABLE xmska CONNECTION (dbcon) "n1710850
 *                                       WHERE werks IN g_ra_werks
 *                                       AND   (gv_where_clause)    "n_1899544
@@ -785,9 +1327,49 @@ FORM aktuelle_bst_sbbst_t.
 *                                     AND   matnr IN matnr
 *                                     AND   charg IN charg
 *                                     AND   sobkz EQ sobkz.
-  ELSE.                                                           "n_1899544
-    sy-subrc = 4.                                                 "n_1899544
-  ENDIF.                                                          "n_1899544
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+    MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low = gv_where_clause ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WHERE_CLAUSE' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low = CONV #( sobkz ) ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSKA_02'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = xmska ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  xmska.
+    ENDTRY.
+
+
+
+
+  ELSE.                                                     "n_1899544
+    sy-subrc = 4.                                           "n_1899544
+  ENDIF.                                                    "n_1899544
 
   IF sy-subrc <> 0.            "no records found
     "MESSAGE s289.
@@ -796,18 +1378,18 @@ FORM aktuelle_bst_sbbst_t.
   ENDIF.
 
 * process CTS Stock
-  LOOP AT xmska.                                                  "vn_1899544
+  LOOP AT xmska.                                            "vn_1899544
 * The following authority check will return true always because only valid records have been fetched from DB
 * The check is done only (in combinnation with a check on the not authorized plants in the calling form routine)
 * to issue a message that "records have been removed due to missing authority".
 * Only for compatibility reasons after code pushdown of authority check to DB
     PERFORM f9000_auth_plant_check USING xmska-werks.       "n_1916359
 
-      PERFORM  f9200_collect_plant     USING  xmska-werks.
+    PERFORM  f9200_collect_plant     USING  xmska-werks.
 
-      PERFORM  f9400_material_key      USING  xmska-matnr.
+    PERFORM  f9400_material_key      USING  xmska-matnr.
 
-  ENDLOOP.                                                        "^n_1899544
+  ENDLOOP.                                                  "^n_1899544
 
   DESCRIBE TABLE xmska       LINES  g_f_cnt_lines.
   IF  g_f_cnt_lines IS INITIAL.        "no records left ?
@@ -851,25 +1433,62 @@ ENDFORM.                     "aktuelle_bst_sbbst_e
 FORM tabellen_lesen.
 
   IF  NOT g_t_mat_key[] IS INITIAL.                         "n451923
-   " ENHANCEMENT-SECTION EHP605_TABELLEN_LESEN_01 SPOTS ES_RM07MLBD .
+    " ENHANCEMENT-SECTION EHP605_TABELLEN_LESEN_01 SPOTS ES_RM07MLBD .
 *   select the material masters
     PERFORM hdb_check_table USING 'MARA' ''.                "n1710850
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT matnr meins mtart FROM mara  CONNECTION (dbcon)  "n1710850
 *                   INTO CORRESPONDING FIELDS OF TABLE imara
 *                   FOR ALL ENTRIES IN g_t_mat_key
 *                             WHERE  matnr  =  g_t_mat_key-matnr.
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    LOOP AT g_t_mat_key ASSIGNING FIELD-SYMBOL(<ls_mat_key>).
+      INSERT VALUE #(  low = CONV #(  <ls_mat_key>-matnr ) ) INTO TABLE lt_sel_opt.
+    ENDLOOP.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MARA_01'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = imara ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  imara.
+    ENDTRY.
+
+
+
     "END-ENHANCEMENT-SECTION.
 
 *   select the short text for all materials
 *   take only the necessary fields                          "n451923
     PERFORM hdb_check_table USING 'MAKT' ''.                "n1710850
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT matnr maktx       FROM makt CONNECTION (dbcon)   "n1710850
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_makt        "n451923
 *                   FOR ALL ENTRIES IN g_t_mat_key
 *                   WHERE  matnr = g_t_mat_key-matnr
 *                     AND  spras = sy-langu.
+
+*  use the same condition as in previous select + language
+    INSERT VALUE #(  low = CONV #(  sy-langu ) ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'SPRAS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MAKT_01'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = g_t_makt ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  g_t_makt.
+    ENDTRY.
+
+
 
     SORT  imara              BY  matnr.                     "n451923
     SORT  g_t_makt           BY  matnr.                     "n451923
@@ -877,8 +1496,8 @@ FORM tabellen_lesen.
   ENDIF.
 
   DATA: BEGIN OF k1 OCCURS 0,
-    mtart LIKE zt134m-mtart,
-  END OF k1.
+          mtart LIKE zt134m-mtart,
+        END OF k1.
   REFRESH k1.
 
   LOOP AT imara.
@@ -887,11 +1506,34 @@ FORM tabellen_lesen.
   ENDLOOP.
 
   IF  NOT k1[] IS INITIAL.                                  "n451923
-  zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM t134m                                 "#EC CI_GENBUFF
 *           INTO CORRESPONDING FIELDS OF TABLE it134m
 *           FOR ALL ENTRIES IN k1         WHERE mtart = k1-mtart
 *                                         AND   bwkey IN g_ra_bwkey.
+
+    CLEAR lt_prop_sel_opt.
+
+    LOOP AT k1 ASSIGNING FIELD-SYMBOL(<ls_k1>).
+      INSERT VALUE #(  low = CONV #(  <ls_k1>-mtart ) ) INTO TABLE lt_sel_opt.
+    ENDLOOP.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'MTART' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING g_ra_bwkey[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWKEY' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T134M_01'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = ''
+                                                                                                                                                     )->process( IMPORTING et_output = it134m ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  it134m.
+    ENDTRY.
+
+
   ENDIF.                                                    "n451923
 
   LOOP AT it134m.
@@ -908,10 +1550,21 @@ FORM tabellen_lesen.
 * the valuated stock, Big-G recommended this logic:
 * Take lines from MSEG where for the combination BUSTW/XAUTO=XBGBB
 * there is an entry in T156W with key BSX.
-zcl_todo_list=>replace_select( ).
+
+*  zcl_todo_list=>replace_select( ).
 *  SELECT bustw xbgbb FROM t156w
 *                     INTO CORRESPONDING FIELDS OF TABLE it156w
 *                     WHERE vorsl = 'BSX'.
+
+  DATA(lv_where_cond) = |VORSL = `DSX`|.
+
+  NEW zcl_rndic_call_select( )->zif_call_odata_sel_generic~call_generic_select(   EXPORTING iv_field_list = 'bustw xbgbb'
+                                                                                                                                                       iv_structure_name = 'ZT156W'
+                                                                                                                                                       iv_table_name = 'T156W'
+                                                                                                                                                       iv_where_clause =  lv_where_cond
+                                                                                                                            IMPORTING et_output = it156w  ).
+
+
   SORT it156w BY bustw xbgbb.
   DELETE ADJACENT DUPLICATES FROM it156w.
   DELETE it156w WHERE bustw = space.
@@ -972,7 +1625,7 @@ FORM fi_belege_lesen.
 * Not related to note 184465, but a significant performance issue
 * if ORGAN is large due to many plants/storage locations.
   DATA: BEGIN OF t_bwkey OCCURS 0,                          "184465
-          bwkey LIKE zbsim-bwkey,                            "184465
+          bwkey LIKE zbsim-bwkey,                           "184465
         END OF t_bwkey.                                     "184465
 
   LOOP AT g_t_organ          WHERE  keytype  =  c_bwkey.
@@ -984,13 +1637,44 @@ FORM fi_belege_lesen.
   CHECK sy-subrc = 0.                                       "184465
 
   PERFORM hdb_check_table USING 'BSIM' ''.                  "n1710850
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT * FROM bsim  CONNECTION (dbcon)                    "n1710850
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_bsim_lean   "n443935
 *           FOR ALL ENTRIES IN t_bwkey   WHERE  bwkey = t_bwkey-bwkey
 *                                        AND    matnr IN matnr
 *                                        AND    bwtar IN bwtar
 *                                        AND    budat >= datum-low.
+
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+  MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_bwkey[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWKEY' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  INSERT VALUE #( low = datum-low ) INTO TABLE lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BUDAT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  LOOP AT t_bwkey ASSIGNING FIELD-SYMBOL(<ls_bwkey>).
+    INSERT VALUE #( low = <ls_bwkey>-bwkey ) INTO TABLE lt_sel_opt.
+  ENDLOOP.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWKEY' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'BSIM_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( dbcon )
+                                                                                                                                                   )->process( IMPORTING et_output = g_t_bsim_lean ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  g_t_bsim_lean.
+  ENDTRY.
+
+
 
   LOOP AT g_t_bsim_lean      INTO  g_s_bsim_lean.           "n443935
     PERFORM  f9300_read_organ
@@ -1065,7 +1749,7 @@ FORM kontiert_aussortieren.
 *     endif.
 * endloop.
 
-  DATA : l_f_bwkey           LIKE  zt001k-bwkey.             "n497992
+  DATA : l_f_bwkey           LIKE  zt001k-bwkey.            "n497992
 
   SORT  it134m               BY  bwkey  mtart.              "n497992
 
@@ -1225,7 +1909,7 @@ FORM belege_ergaenzen.                         "Version from note 204872
         ENDIF.                                              "n443935
       ENDLOOP.                                              "n443935
                                                             "n443935
-     " BREAK-POINT                ID mmim_rep_mb5b.          "n921164
+      " BREAK-POINT                ID mmim_rep_mb5b.          "n921164
 *     dynamic break-point : G_T_BSIM_LEAN is available     "n921164
                                                             "n443935
 *     sort working table for acces with MM document         "n443935
@@ -1345,22 +2029,34 @@ FORM belege_ergaenzen.                         "Version from note 204872
 *   like price changes, account adjustments, etc...         "n497992
 
     IF  g_flag_break-b4 = 'X'.                              "n921164
-    "  BREAK-POINT                ID mmim_rep_mb5b.          "n921164
+      "  BREAK-POINT                ID mmim_rep_mb5b.          "n921164
 *     dynamic break-point : stop here when strange          "n921164
 *     FI documents are shown                                "n921164
     ENDIF.                                                  "n921164
 
     IF NOT g_cust_bseg_bsx IS INITIAL.                      "n497992
-      DATA l_s_ktosl         LIKE      zbseg-ktosl.          "n497992
+      DATA l_s_ktosl         LIKE      zbseg-ktosl.         "n497992
                                                             "n497992
 *     look for the matching BSEG entry                      "n497992
-zcl_todo_list=>replace_select( ).
+*zcl_todo_list=>replace_select( ).
 *      SELECT SINGLE ktosl    FROM bseg                      "n497992
 *                             INTO l_s_ktosl                 "n497992
 *         WHERE  bukrs  =  g_s_bsim_lean-bukrs               "n497992
 *           AND  belnr  =  g_s_bsim_lean-belnr               "n497992
 *           AND  gjahr  =  g_s_bsim_lean-gjahr               "n497992
 *           AND  buzei  =  g_s_bsim_lean-buzei.              "n497992
+
+      DATA(lv_where_cond) = |BUKRS = `| && g_s_bsim_lean-bukrs && |`| &&
+                                              |BELNR = `| && g_s_bsim_lean-belnr && |`| &&
+                                              |GJAHR = | && g_s_bsim_lean-gjahr &&
+                                              |BUZEI = | && g_s_bsim_lean-buzei  .
+      NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'KTOSL'
+                                                                                                                                                    iv_structure_name = 'ZBSEG'
+                                                                                                                                                    iv_table_name = 'BSEG'
+                                                                                                                                                    iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                IMPORTING es_output = l_s_ktosl ).
+
+
                                                             "n497992
       IF  sy-subrc IS INITIAL.                              "n497992
         IF l_s_ktosl  =  'BSX'.                             "n497992
@@ -1423,8 +2119,8 @@ zcl_todo_list=>replace_select( ).
   DELETE g_t_mseg_lean WHERE sobkz = 'T'.                   "SIT
 
   FIELD-SYMBOLS:
-    <fs_mseg_lean>  TYPE stype_mseg_lean,
-    <fs_bseg>       TYPE stype_bseg.
+    <fs_mseg_lean> TYPE stype_mseg_lean,
+    <fs_bseg>      TYPE stype_bseg.
 
   DATA:
     ls_accdet   TYPE stype_accdet.
@@ -1437,7 +2133,7 @@ zcl_todo_list=>replace_select( ).
 
 *   save result from database selection into hashed table
     IF NOT g_t_bseg_key[] IS INITIAL.
-    zcl_todo_list=>replace_select( ).
+      zcl_todo_list=>replace_select( ).
 *      SELECT bukrs belnr gjahr buzei hkont FROM bseg
 *        INTO CORRESPONDING FIELDS OF TABLE g_t_bseg
 *        FOR ALL ENTRIES IN g_t_bseg_key
@@ -1606,7 +2302,7 @@ FORM bestaende_berechnen.
         bestand-endmenge = bestand-endmenge + weg_char-menge.
         READ TABLE imara WITH KEY matnr  = bestand-matnr.
         MOVE imara-meins TO bestand-meins.
-       " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_04 SPOTS ES_RM07MLBD .
+        " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_04 SPOTS ES_RM07MLBD .
         COLLECT bestand.
       ENDLOOP.
     ENDIF.
@@ -1652,7 +2348,7 @@ FORM bestaende_berechnen.
           bestand-endmenge = bestand-endmenge + weg_char-menge.
           READ TABLE imara WITH KEY matnr  = bestand-matnr.
           MOVE imara-meins TO bestand-meins.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_08 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_08 SPOTS ES_RM07MLBD .
           COLLECT bestand.
         ENDLOOP.
       ENDIF.
@@ -1792,7 +2488,7 @@ FORM bestaende_berechnen.
           bestand-endmenge = bestand-endmenge + weg_char-menge.
           READ TABLE imara WITH KEY matnr  = bestand-matnr.
           MOVE imara-meins TO bestand-meins.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_20 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_20 SPOTS ES_RM07MLBD .
           COLLECT bestand.
         ENDLOOP.
       ENDIF.
@@ -1807,7 +2503,7 @@ FORM bestaende_berechnen.
                                       shkzg = 'S'.
           bestand-endmenge = imskax-kalab + imskax-kains + imskax-kaspe
                            + imskax-kaein - weg_mat-menge.
-         "ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_21 SPOTS ES_RM07MLBD .
+          "ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_21 SPOTS ES_RM07MLBD .
           CLEAR weg_mat-menge.
           READ TABLE weg_mat WITH KEY werks = imskax-werks
                                       matnr = imskax-matnr
@@ -1953,7 +2649,7 @@ FORM bestaende_berechnen.
         MOVE sum_mat-menge TO bestand-haben.
         bestand-anfmenge = bestand-endmenge - bestand-soll
                                             + bestand-haben.
-       " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_26 SPOTS ES_RM07MLBD .
+        " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_26 SPOTS ES_RM07MLBD .
         MODIFY bestand.
       ENDLOOP.
 *-------------------- ... auf Chargenebene ----------------------------*
@@ -1974,7 +2670,7 @@ FORM bestaende_berechnen.
         MOVE sum_char-menge TO bestand-haben.
         bestand-anfmenge = bestand-endmenge - bestand-soll
                                             + bestand-haben.
-       " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_28 SPOTS ES_RM07MLBD .
+        " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_28 SPOTS ES_RM07MLBD .
         MODIFY bestand.
       ENDLOOP.
     ENDIF.
@@ -1988,7 +2684,7 @@ FORM bestaende_berechnen.
                                       matnr = bestand-matnr
                                       shkzg = 'S'.
           MOVE sum_mat-menge TO bestand-soll.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_29 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_29 SPOTS ES_RM07MLBD .
           CLEAR sum_mat-menge.
           READ TABLE sum_mat WITH KEY werks = bestand-werks
                                       matnr = bestand-matnr
@@ -1996,7 +2692,7 @@ FORM bestaende_berechnen.
           MOVE sum_mat-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_30 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_30 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ELSEIF xchar = 'X'.
@@ -2007,7 +2703,7 @@ FORM bestaende_berechnen.
                                        charg = bestand-charg
                                        shkzg = 'S'.
           MOVE sum_char-menge TO bestand-soll.              "n1031056
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_31 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_31 SPOTS ES_RM07MLBD .
           CLEAR sum_char-menge.
           READ TABLE sum_char WITH KEY werks = bestand-werks
                                        matnr = bestand-matnr
@@ -2016,7 +2712,7 @@ FORM bestaende_berechnen.
           MOVE sum_char-menge TO bestand-haben.             "n1031056
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_32 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_32 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ENDIF.
@@ -2029,7 +2725,7 @@ FORM bestaende_berechnen.
                                       matnr = bestand-matnr
                                       shkzg = 'S'.
           MOVE sum_mat-menge TO bestand-soll.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_33 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_33 SPOTS ES_RM07MLBD .
           CLEAR sum_mat-menge.
           READ TABLE sum_mat WITH KEY werks = bestand-werks
                                       matnr = bestand-matnr
@@ -2037,7 +2733,7 @@ FORM bestaende_berechnen.
           MOVE sum_mat-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_34 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_34 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ELSEIF xchar = 'X'.
@@ -2048,7 +2744,7 @@ FORM bestaende_berechnen.
                                        charg = bestand-charg
                                        shkzg = 'S'.
           MOVE sum_char-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_35 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_35 SPOTS ES_RM07MLBD .
           CLEAR sum_char-menge.
           READ TABLE sum_char WITH KEY werks = bestand-werks
                                        matnr = bestand-matnr
@@ -2057,7 +2753,7 @@ FORM bestaende_berechnen.
           MOVE sum_char-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_36 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_36 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ENDIF.
@@ -2070,7 +2766,7 @@ FORM bestaende_berechnen.
                                       matnr = bestand-matnr
                                       shkzg = 'S'.
           MOVE sum_mat-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_37 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_37 SPOTS ES_RM07MLBD .
           CLEAR sum_mat-menge.
           READ TABLE sum_mat WITH KEY werks = bestand-werks
                                       matnr = bestand-matnr
@@ -2078,7 +2774,7 @@ FORM bestaende_berechnen.
           MOVE sum_mat-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_38 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_38 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ELSEIF xchar = 'X'.
@@ -2089,7 +2785,7 @@ FORM bestaende_berechnen.
                                        charg = bestand-charg
                                        shkzg = 'S'.
           MOVE sum_char-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_39 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_39 SPOTS ES_RM07MLBD .
           CLEAR sum_char-menge.
           READ TABLE sum_char WITH KEY werks = bestand-werks
                                        matnr = bestand-matnr
@@ -2098,7 +2794,7 @@ FORM bestaende_berechnen.
           MOVE sum_char-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_40 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_40 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ENDIF.
@@ -2110,7 +2806,7 @@ FORM bestaende_berechnen.
                                       matnr = bestand-matnr
                                       shkzg = 'S'.
           MOVE sum_mat-menge TO bestand-soll.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_41 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_41 SPOTS ES_RM07MLBD .
           CLEAR sum_mat-menge.
           READ TABLE sum_mat WITH KEY werks = bestand-werks
                                       matnr = bestand-matnr
@@ -2118,7 +2814,7 @@ FORM bestaende_berechnen.
           MOVE sum_mat-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_42 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_42 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ELSEIF xchar = 'X'.
@@ -2129,7 +2825,7 @@ FORM bestaende_berechnen.
                                        charg = bestand-charg
                                        shkzg = 'S'.
           MOVE sum_char-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_43 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_43 SPOTS ES_RM07MLBD .
           CLEAR sum_char-menge.
           READ TABLE sum_char WITH KEY werks = bestand-werks
                                        matnr = bestand-matnr
@@ -2138,7 +2834,7 @@ FORM bestaende_berechnen.
           MOVE sum_char-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_44 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_44 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ENDIF.
@@ -2150,7 +2846,7 @@ FORM bestaende_berechnen.
                                       matnr = bestand-matnr
                                       shkzg = 'S'.
           MOVE sum_mat-menge TO bestand-soll.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_45 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_45 SPOTS ES_RM07MLBD .
           CLEAR sum_mat-menge.
           READ TABLE sum_mat WITH KEY werks = bestand-werks
                                       matnr = bestand-matnr
@@ -2158,7 +2854,7 @@ FORM bestaende_berechnen.
           MOVE sum_mat-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_46 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_46 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ELSEIF xchar = 'X'.
@@ -2169,7 +2865,7 @@ FORM bestaende_berechnen.
                                        charg = bestand-charg
                                        shkzg = 'S'.
           MOVE sum_char-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_47 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_47 SPOTS ES_RM07MLBD .
           CLEAR sum_char-menge.
           READ TABLE sum_char WITH KEY werks = bestand-werks
                                        matnr = bestand-matnr
@@ -2178,7 +2874,7 @@ FORM bestaende_berechnen.
           MOVE sum_char-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_48 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_48 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ENDIF.
@@ -2190,7 +2886,7 @@ FORM bestaende_berechnen.
                                       matnr = bestand-matnr
                                       shkzg = 'S'.
           MOVE sum_mat-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_53 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_53 SPOTS ES_RM07MLBD .
           CLEAR sum_mat-menge.
           READ TABLE sum_mat WITH KEY werks = bestand-werks
                                       matnr = bestand-matnr
@@ -2198,7 +2894,7 @@ FORM bestaende_berechnen.
           MOVE sum_mat-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-        "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_54 SPOTS ES_RM07MLBD .
+          "  ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_54 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ELSEIF xchar = 'X'.
@@ -2209,7 +2905,7 @@ FORM bestaende_berechnen.
                                        charg = bestand-charg
                                        shkzg = 'S'.
           MOVE sum_char-menge TO bestand-soll.
-       "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_55 SPOTS ES_RM07MLBD .
+          "   ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_55 SPOTS ES_RM07MLBD .
           CLEAR sum_char-menge.
           READ TABLE sum_char WITH KEY werks = bestand-werks
                                        matnr = bestand-matnr
@@ -2218,7 +2914,7 @@ FORM bestaende_berechnen.
           MOVE sum_char-menge TO bestand-haben.
           bestand-anfmenge = bestand-endmenge - bestand-soll
                                               + bestand-haben.
-         " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_56 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-POINT EHP605_BESTAENDE_BERECHNEN_56 SPOTS ES_RM07MLBD .
           MODIFY bestand.
         ENDLOOP.
       ENDIF.
@@ -2380,7 +3076,7 @@ FORM listausgabe.
         IMPORTING                                           "n890109
           et_sort = lt_sort[].                   "n890109
                                                             "n890109
-       zcl_todo_list=>replace_fm( ).
+      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'K_KKB_SUMLEVEL_SELECT'                 "n890109
 *        EXPORTING                                           "n890109
 *          i_no_dialog = 'X'                          "n890109
@@ -2415,7 +3111,7 @@ FORM listausgabe.
   ENDIF.                                                    "n890109
 
   IF  g_flag_break-b5 = 'X'.                                "n921164
-   " BREAK-POINT              ID mmim_rep_mb5b.              "n921164
+    " BREAK-POINT              ID mmim_rep_mb5b.              "n921164
 *   dynamic break-point : check input data for list viewer  "n921164
   ENDIF.                                                    "n921164
 
@@ -2618,10 +3314,10 @@ ENDFORM.                     "print_end_of_list             "n599218
 FORM  print_end_of_list_render
          CHANGING cr_content TYPE REF TO cl_salv_form_element.
 
-  DATA: lr_grid      TYPE REF TO cl_salv_form_layout_grid,
-        lr_flow      TYPE REF TO cl_salv_form_layout_flow,
-        l_text(500)  TYPE c,
-        l_char(500)  TYPE c.
+  DATA: lr_grid     TYPE REF TO cl_salv_form_layout_grid,
+        lr_flow     TYPE REF TO cl_salv_form_layout_flow,
+        l_text(500) TYPE c,
+        l_char(500) TYPE c.
 
 *... create a grid
   CREATE OBJECT lr_grid.
@@ -2650,8 +3346,8 @@ ENDFORM.                     " print_end_of_list_render
                                                             "n599218
 FORM create_headline.                                       "n599218
                                                             "n599218
-  DATA : l_offset            TYPE i,                        "n599218
-         l_strlen            TYPE i.                        "n599218
+  DATA : l_offset TYPE i,                                   "n599218
+         l_strlen TYPE i.                                   "n599218
                                                             "n599218
 * get the length of the title                               "n599218
   COMPUTE  l_strlen          = strlen( sy-title ).          "n599218
@@ -2695,11 +3391,11 @@ ENDFORM.                     "create_headline               "n599218
                                                             "n599218
 **-----------------------------------------------------------"n599218
 *ENHANCEMENT-POINT RM07MLBD_FORM_01_01 SPOTS ES_RM07MLBD STATIC.
-FORM AKTUELLE_BST_SBBST_B.
+FORM aktuelle_bst_sbbst_b.
 *--------------------  Kundenbeistellbestand  -------------------------*
 *   elseif sobkz = 'B'.
-perform hdb_check_table using 'MCSD' ''.                                     "SH note 1787730
-      zcl_todo_list=>replace_select( ).
+  PERFORM hdb_check_table USING 'MCSD' ''.                                     "SH note 1787730
+*  zcl_todo_list=>replace_select( ).
 *      select * from mcsd into corresponding fields of table xmcsd connection (dbcon) "1787730
 *                                         WHERE WERKS IN G_RA_WERKS
 *                                         AND   LGORT IN G_RA_LGORT
@@ -2707,51 +3403,86 @@ perform hdb_check_table using 'MCSD' ''.                                     "SH
 *                                         AND   charg IN charg
 *                                         AND   sobkz EQ sobkz.
 
-  IF SY-SUBRC <> 0.          "no record found
-   " MESSAGE S289.
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+  MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  INSERT VALUE #( low = CONV #(  sobkz ) ) INTO TABLE lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MCSD_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( dbcon )
+                                                                                                                                                   )->process( IMPORTING et_output = xmcsd ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  xmcsd.
+  ENDTRY.
+
+
+  IF sy-subrc <> 0.          "no record found
+    " MESSAGE S289.
 *   Kein Material in Selektion vorhanden.
-    PERFORM ANFORDERUNGSBILD.
+    PERFORM anforderungsbild.
   ENDIF.
 
 * process customer stock
-  LOOP AT XMCSD.
-    PERFORM  F9000_AUTH_PLANT_CHECK    USING  XMCSD-WERKS.
+  LOOP AT xmcsd.
+    PERFORM  f9000_auth_plant_check    USING  xmcsd-werks.
 
-    IF  G_FLAG_AUTHORITY IS INITIAL.
-      DELETE                 XMCSD.
+    IF  g_flag_authority IS INITIAL.
+      DELETE                 xmcsd.
     ELSE.
-      PERFORM  F9200_COLLECT_PLANT     USING  XMCSD-WERKS.
+      PERFORM  f9200_collect_plant     USING  xmcsd-werks.
 
-      PERFORM  F9400_MATERIAL_KEY      USING  XMCSD-MATNR.
+      PERFORM  f9400_material_key      USING  xmcsd-matnr.
     ENDIF.
   ENDLOOP.
 
-  DESCRIBE TABLE XMCSD       LINES  G_F_CNT_LINES.
-  IF  G_F_CNT_LINES IS INITIAL.        "no record left
+  DESCRIBE TABLE xmcsd       LINES  g_f_cnt_lines.
+  IF  g_f_cnt_lines IS INITIAL.        "no record left
     "MESSAGE S289.
 *   Kein Material in Selektion vorhanden.
-    PERFORM ANFORDERUNGSBILD.
+    PERFORM anforderungsbild.
   ENDIF.
 
-      SORT xmcsd.
-      LOOP AT xmcsd.
-        MOVE-CORRESPONDING xmcsd TO imcsd.
-        COLLECT imcsd.
-      ENDLOOP.
-      FREE xmcsd. REFRESH xmcsd.
+  SORT xmcsd.
+  LOOP AT xmcsd.
+    MOVE-CORRESPONDING xmcsd TO imcsd.
+    COLLECT imcsd.
+  ENDLOOP.
+  FREE xmcsd. REFRESH xmcsd.
 
-      IF xchar = ' '.
-        LOOP AT imcsd.
-          MOVE-CORRESPONDING imcsd TO imcsdx.
-          COLLECT imcsdx.
-        ENDLOOP.
-        SORT imcsdx.
-      ELSEIF xchar = 'X'.
-        LOOP AT imcsd.
-          CHECK imcsd-charg IS INITIAL.
-          DELETE imcsd.
-        ENDLOOP.
-      ENDIF.
+  IF xchar = ' '.
+    LOOP AT imcsd.
+      MOVE-CORRESPONDING imcsd TO imcsdx.
+      COLLECT imcsdx.
+    ENDLOOP.
+    SORT imcsdx.
+  ELSEIF xchar = 'X'.
+    LOOP AT imcsd.
+      CHECK imcsd-charg IS INITIAL.
+      DELETE imcsd.
+    ENDLOOP.
+  ENDIF.
 
 ENDFORM.                     "aktuelle_bst_sbbst_b
 
@@ -2895,21 +3626,21 @@ FORM nachrichtenausgabe .
        BY msgid msgno msgv1 msgv2 msgv3 msgv4.              "n1481757
                                                             "n1481757
     TYPES: BEGIN OF slis_fieldcat,                          "n1481757
-             row_pos        LIKE sy-curow, " output in row      "n1481757
-             col_pos        LIKE sy-cucol, " position of the column "n1481757
-             fieldname      TYPE slis_fieldname,            "n1481757
-             ref_tabname        TYPE slis_tabname,          "n1481757
-             msgid          LIKE sy-msgid,                  "n1481757
-             msgno          LIKE sy-msgno,                  "n1481757
-             msgv1          LIKE sy-msgv1,                  "n1481757
-             msgv2          LIKE sy-msgv2,                  "n1481757
-             msgv3          LIKE sy-msgv3,                  "n1481757
-             msgv4          LIKE sy-msgv4,                  "n1481757
+             row_pos     LIKE sy-curow, " output in row      "n1481757
+             col_pos     LIKE sy-cucol, " position of the column "n1481757
+             fieldname   TYPE slis_fieldname,               "n1481757
+             ref_tabname TYPE slis_tabname,                 "n1481757
+             msgid       LIKE sy-msgid,                     "n1481757
+             msgno       LIKE sy-msgno,                     "n1481757
+             msgv1       LIKE sy-msgv1,                     "n1481757
+             msgv2       LIKE sy-msgv2,                     "n1481757
+             msgv3       LIKE sy-msgv3,                     "n1481757
+             msgv4       LIKE sy-msgv4,                     "n1481757
            END OF slis_fieldcat.                            "n1481757
 *                                                           "n1481757
     DATA: BEGIN OF outtab OCCURS 0,                         "n1481757
-            msgid LIKE sy-msgid,                            "n1481757
-            msgno LIKE sy-msgno,                            "n1481757
+            msgid    LIKE sy-msgid,                         "n1481757
+            msgno    LIKE sy-msgno,                         "n1481757
             text(80),                                       "n1481757
           END OF outtab.                                    "n1481757
     DATA: fc TYPE slis_fieldcat_alv OCCURS 0 WITH HEADER LINE. "n1481757
@@ -2970,11 +3701,11 @@ ENDFORM.                    " NACHRICHTENAUSGABE
 FORM build_bklas_selection .
 
   DATA:
-    lv_msgtext(40)    TYPE c,
-    ls_t030           LIKE zt030,
-    ls_t030r          LIKE Zt030r,
-    lt_organ          LIKE g_t_organ[],
-    lt_t030           TYPE TABLE OF Zt030 WITH HEADER LINE.
+    lv_msgtext(40) TYPE c,
+    ls_t030        LIKE zt030,
+    ls_t030r       LIKE zt030r,
+    lt_organ       LIKE g_t_organ[],
+    lt_t030        TYPE TABLE OF zt030 WITH HEADER LINE.
 
   CHECK hkont IS NOT INITIAL.
 
@@ -2989,36 +3720,98 @@ FORM build_bklas_selection .
   ENDIF.
 
 * read account determination rules
-zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT * FROM t030r INTO ls_t030r FOR ALL ENTRIES IN lt_organ
 *           WHERE ktopl EQ lt_organ-ktopl
 *             AND ktosl EQ 'BSX'
 *        ORDER BY PRIMARY KEY.
-*   read valuation classes and relevant accounts
-zcl_todo_list=>replace_select( ).
+
+  DATA lt_t030r_temp TYPE TABLE OF zt030r.
+  DATA lt_t030_temp TYPE TABLE OF zt030.
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+  LOOP AT   lt_organ ASSIGNING FIELD-SYMBOL(<ls_organ>).
+    INSERT VALUE #( low = CONV #( <ls_organ>-ktopl ) ) INTO TABLE lt_sel_opt.
+  ENDLOOP.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'KTOPL' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  INSERT VALUE #( low = CONV #( 'BSX' ) ) INTO TABLE lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'KTOSL' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T030R_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( '' )
+                                                                                                                                                   )->process( IMPORTING et_output = lt_t030r_temp ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  lt_t030r_temp.
+  ENDTRY.
+
+  IF lt_t030r_temp IS NOT INITIAL.
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM t030 INTO ls_t030
 *             WHERE ktopl EQ ls_t030r-ktopl
 *               AND ktosl EQ 'BSX'
 *               AND konts IN hkont
 *        ORDER BY PRIMARY KEY.
-*      IF NOT ls_t030-komok IS INITIAL OR
-*        ls_t030-konts NE ls_t030-konth.
-*        MOVE ls_t030-ktopl TO lv_msgtext.
-*        WRITE 'BSX' TO lv_msgtext+10.
-*        WRITE ls_t030-konts TO lv_msgtext+20.
-*        CONDENSE lv_msgtext.
-*        MESSAGE s147(m8) WITH lv_msgtext.
-**       Account determination is not possible
-*        PERFORM anforderungsbild.
-*      ENDIF.
-*      LOOP AT lt_organ TRANSPORTING NO FIELDS
-*        WHERE ktopl = ls_t030-ktopl AND bwmod = ls_t030-bwmod.
-*      ENDLOOP.
-*      CHECK sy-subrc IS INITIAL.
-*      IF ls_t030r-xbkla IS INITIAL.
-*        CHECK ls_t030-bklas IS INITIAL.
-*      ENDIF.
-*      APPEND ls_t030 TO lt_t030.
+
+    CLEAR lt_prop_sel_opt.
+
+    LOOP AT   lt_organ ASSIGNING <ls_organ>.
+      INSERT VALUE #( low = CONV #( <ls_organ>-ktopl ) ) INTO TABLE lt_sel_opt.
+    ENDLOOP.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'KTOPL' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    INSERT VALUE #( low = CONV #( 'BSX' ) ) INTO TABLE lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'KTOSL' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    MOVE-CORRESPONDING hkont[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'KONTS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T030_01'
+                                                                                                                                                   it_select_opt = lt_prop_sel_opt
+                                                                                                                                                   iv_db_connection = CONV #( '' )
+                                                                                                                                                     )->process( IMPORTING et_output = lt_t030_temp ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  lt_t030_temp.
+    ENDTRY.
+
+  ENDIF.
+
+  LOOP AT lt_t030r_temp INTO ls_t030r.
+    LOOP AT lt_t030_temp INTO ls_t030 WHERE ktopl = ls_t030r-ktopl.
+
+*   read valuation classes and relevant accounts
+
+      IF NOT ls_t030-komok IS INITIAL OR
+        ls_t030-konts NE ls_t030-konth.
+        MOVE ls_t030-ktopl TO lv_msgtext.
+        WRITE 'BSX' TO lv_msgtext+10.
+        WRITE ls_t030-konts TO lv_msgtext+20.
+        CONDENSE lv_msgtext.
+        MESSAGE s147(m8) WITH lv_msgtext.
+*       Account determination is not possible
+        PERFORM anforderungsbild.
+      ENDIF.
+      LOOP AT lt_organ TRANSPORTING NO FIELDS
+        WHERE ktopl = ls_t030-ktopl AND bwmod = ls_t030-bwmod.
+      ENDLOOP.
+      CHECK sy-subrc IS INITIAL.
+      IF ls_t030r-xbkla IS INITIAL.
+        CHECK ls_t030-bklas IS INITIAL.
+      ENDIF.
+      APPEND ls_t030 TO lt_t030.
+
+    ENDLOOP.
+  ENDLOOP.
 *    ENDSELECT.
 *  ENDSELECT.
 
@@ -3037,7 +3830,7 @@ zcl_todo_list=>replace_select( ).
   ENDLOOP.
   SORT ibklas. DELETE ADJACENT DUPLICATES FROM ibklas.
   IF ibklas[] IS INITIAL.
-   " MESSAGE s289.
+    " MESSAGE s289.
 *   no data contained in the selection
     PERFORM anforderungsbild.
   ENDIF.
@@ -3052,10 +3845,10 @@ FORM get_acc_det  CHANGING cs_accdet  TYPE stype_accdet.
 
   TYPES:
     BEGIN OF ltt_acc,
-      bklas   LIKE zt030-bklas,
-      bwmod   LIKE zt030-bwmod,
-      ktopl   LIKE zt030-ktopl,
-      hkont   LIKE zt030-konts,
+      bklas LIKE zt030-bklas,
+      bwmod LIKE zt030-bwmod,
+      ktopl LIKE zt030-ktopl,
+      hkont LIKE zt030-konts,
     END OF ltt_acc.
 
   STATICS:
@@ -3086,34 +3879,81 @@ FORM get_acc_det  CHANGING cs_accdet  TYPE stype_accdet.
     WHEN 'Q'.
       IF cs_accdet-mat_pspnr IS INITIAL.
         PERFORM hdb_check_table USING 'MSEG' ''.            "n1710850
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE mat_pspnr FROM mseg CONNECTION (dbcon) "n1710850
 *          INTO cs_accdet-mat_pspnr
 *          WHERE mblnr = cs_accdet-mblnr
 *            AND mjahr = cs_accdet-mjahr
 *            AND zeile = cs_accdet-zeile.
+
+        DATA ls_zmseg TYPE zmseg.
+        DATA(lv_where_cond) = |MBLNR = `| && cs_accdet-mblnr && |`| &&
+                                                |MJAHR = | && cs_accdet-mjahr &&
+                                                |ZEILE = | && cs_accdet-zeile  .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'mat_pspnr'
+                                                                                                                                                      iv_structure_name = 'ZMSEG'
+                                                                                                                                                      iv_table_name = 'MSEG'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmseg ).
+        cs_accdet-mat_pspnr = ls_zmseg-mat_pspnr.
+
+
       ENDIF.
       CLEAR: cs_accdet-mat_kdauf, cs_accdet-mat_kdpos, cs_accdet-lifnr.
     WHEN 'E'.
       IF cs_accdet-mat_kdauf IS INITIAL OR cs_accdet-mat_kdpos IS INITIAL.
         PERFORM hdb_check_table USING 'MSEG' ''.            "n1710850
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE mat_kdauf mat_kdpos FROM mseg CONNECTION (dbcon) "n1710850
 *          INTO (cs_accdet-mat_kdauf, cs_accdet-mat_kdpos)
 *          WHERE mblnr = cs_accdet-mblnr
 *            AND mjahr = cs_accdet-mjahr
 *            AND zeile = cs_accdet-zeile.
+
+
+
+        lv_where_cond = |MBLNR = `| && cs_accdet-mblnr && |`| &&
+                                    |MJAHR = | && cs_accdet-mjahr &&
+                                    |ZEILE = | && cs_accdet-zeile  .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'mat_kdauf mat_kdpos'
+                                                                                                                                                      iv_structure_name = 'ZMSEG'
+                                                                                                                                                      iv_table_name = 'MSEG'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmseg ).
+        cs_accdet-mat_kdauf = ls_zmseg-mat_kdauf.
+        cs_accdet-mat_kdpos = ls_zmseg-mat_kdpos.
+
+
       ENDIF.
       CLEAR: cs_accdet-mat_pspnr, cs_accdet-lifnr.
     WHEN 'O'.
       IF cs_accdet-lifnr IS INITIAL.
         PERFORM hdb_check_table USING 'MSEG' ''.            "n1710850
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE lifnr FROM mseg CONNECTION (dbcon)    "n1710850
 *          INTO cs_accdet-lifnr
 *          WHERE mblnr = cs_accdet-mblnr
 *            AND mjahr = cs_accdet-mjahr
 *            AND zeile = cs_accdet-zeile.
+
+
+        lv_where_cond = |MBLNR = `| && cs_accdet-mblnr && |`| &&
+                                    |MJAHR = | && cs_accdet-mjahr &&
+                                    |ZEILE = | && cs_accdet-zeile  .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'lifnr'
+                                                                                                                                                      iv_structure_name = 'ZMSEG'
+                                                                                                                                                      iv_table_name = 'MSEG'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmseg ).
+        cs_accdet-lifnr = ls_zmseg-lifnr.
+
+
       ENDIF.
       CLEAR: cs_accdet-mat_kdauf, cs_accdet-mat_kdpos, cs_accdet-mat_pspnr.
     WHEN OTHERS.
@@ -3132,7 +3972,7 @@ FORM get_acc_det  CHANGING cs_accdet  TYPE stype_accdet.
   IF sy-subrc = 0.
     cs_accdet-hkont = ls_acc-hkont.
   ELSE.
-  zcl_todo_list=>replace_fm( ).
+    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'MR_ACCOUNT_ASSIGNMENT'
 *      EXPORTING
 *        bewertungsklasse       = cs_accdet-bklas
@@ -3164,15 +4004,15 @@ FORM get_bklas  CHANGING cs_accdet  TYPE stype_accdet.
 
   TYPES:
     BEGIN OF ltt_bklas,
-      matnr       LIKE zmbew-matnr,
-      bwkey       LIKE zmbew-bwkey,
-      bwtar       LIKE zmbew-bwtar,
-      sobkz       LIKE zqbew-sobkz,
-      mat_pspnr   LIKE zqbew-pspnr,
-      mat_kdauf   LIKE zebew-vbeln,
-      mat_kdpos   LIKE zebew-posnr,
-      lifnr       LIKE zobew-lifnr,
-      bklas       LIKE zmbew-bklas,
+      matnr     LIKE zmbew-matnr,
+      bwkey     LIKE zmbew-bwkey,
+      bwtar     LIKE zmbew-bwtar,
+      sobkz     LIKE zqbew-sobkz,
+      mat_pspnr LIKE zqbew-pspnr,
+      mat_kdauf LIKE zebew-vbeln,
+      mat_kdpos LIKE zebew-posnr,
+      lifnr     LIKE zobew-lifnr,
+      bklas     LIKE zmbew-bklas,
     END OF ltt_bklas.
 
   STATICS:
@@ -3196,7 +4036,7 @@ FORM get_bklas  CHANGING cs_accdet  TYPE stype_accdet.
     CASE cs_accdet-sobkz.
       WHEN 'Q'.
         PERFORM hdb_check_table USING 'QBEW' ''.            "n1710850
-          zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE bklas FROM qbew CONNECTION (dbcon)    "n1710850
 *          INTO cs_accdet-bklas
 *          WHERE matnr = cs_accdet-matnr
@@ -3204,9 +4044,27 @@ FORM get_bklas  CHANGING cs_accdet  TYPE stype_accdet.
 *            AND bwtar = cs_accdet-bwtar
 *            AND sobkz = cs_accdet-sobkz
 *            AND pspnr = cs_accdet-mat_pspnr.
+
+        DATA ls_zmbew TYPE zmbew.
+        DATA(lv_where_cond) = |MATNR = `| && cs_accdet-matnr && |`| &&
+                                                |BWKEY = `| && cs_accdet-bwkey && |`| &&
+                                                |BWTAR = `| && cs_accdet-bwtar && |`| &&
+                                                |SOBKZ = `| && cs_accdet-sobkz && |`| &&
+                                                |PSPNR = | && cs_accdet-mat_pspnr  .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'bklas'
+                                                                                                                                                      iv_structure_name = 'ZMBEW'
+                                                                                                                                                      iv_table_name = 'QBEW'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmbew ).
+        cs_accdet-bklas = ls_zmbew-bklas.
+
+
+
       WHEN 'E'.
         PERFORM hdb_check_table USING 'EBEW' ''.            "n1710850
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE bklas FROM ebew CONNECTION (dbcon)    "n1710850
 *          INTO cs_accdet-bklas
 *          WHERE matnr = cs_accdet-matnr
@@ -3215,9 +4073,27 @@ FORM get_bklas  CHANGING cs_accdet  TYPE stype_accdet.
 *            AND sobkz = cs_accdet-sobkz
 *            AND vbeln = cs_accdet-mat_kdauf
 *            AND posnr = cs_accdet-mat_kdpos.
+
+
+        lv_where_cond = |MATNR = `| && cs_accdet-matnr && |`| &&
+                                                |BWKEY = `| && cs_accdet-bwkey && |`| &&
+                                                |BWTAR = `| && cs_accdet-bwtar && |`| &&
+                                                |SOBKZ = `| && cs_accdet-sobkz && |`| &&
+                                                |VBELN = `| && cs_accdet-mat_kdauf && |`| &&
+                                                |POSNR = | && cs_accdet-mat_kdpos  .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'bklas'
+                                                                                                                                                      iv_structure_name = 'ZMBEW'
+                                                                                                                                                      iv_table_name = 'EBEW'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmbew ).
+        cs_accdet-bklas = ls_zmbew-bklas.
+
+
       WHEN 'O'.
         PERFORM hdb_check_table USING 'OBEW' ''.            "n1710850
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE bklas FROM obew CONNECTION (dbcon)    "n1710850
 *          INTO cs_accdet-bklas
 *          WHERE matnr = cs_accdet-matnr
@@ -3225,14 +4101,45 @@ FORM get_bklas  CHANGING cs_accdet  TYPE stype_accdet.
 *            AND bwtar = cs_accdet-bwtar
 *            AND sobkz = cs_accdet-sobkz
 *            AND lifnr = cs_accdet-lifnr.
+
+        lv_where_cond = |MATNR = `| && cs_accdet-matnr && |`| &&
+                                    |BWKEY = `| && cs_accdet-bwkey && |`| &&
+                                    |BWTAR = `| && cs_accdet-bwtar && |`| &&
+                                    |SOBKZ = `| && cs_accdet-sobkz && |`| &&
+                                    |LIFNR = `| && cs_accdet-mat_kdauf && |`| .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'bklas'
+                                                                                                                                                      iv_structure_name = 'ZMBEW'
+                                                                                                                                                      iv_table_name = 'OBEW'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmbew ).
+        cs_accdet-bklas = ls_zmbew-bklas.
+
+
+
       WHEN OTHERS.
         PERFORM hdb_check_table USING 'MBEW' ''.            "n1710850
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE bklas FROM mbew CONNECTION (dbcon)    "n1710850
 *          INTO cs_accdet-bklas
 *          WHERE matnr = cs_accdet-matnr
 *            AND bwkey = cs_accdet-bwkey
 *            AND bwtar = cs_accdet-bwtar.
+
+        lv_where_cond = |MATNR = `| && cs_accdet-matnr && |`| &&
+                                    |BWKEY = `| && cs_accdet-bwkey && |`| &&
+                                    |BWTAR = `| && cs_accdet-bwtar && |`| .
+
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'bklas'
+                                                                                                                                                      iv_structure_name = 'ZMBEW'
+                                                                                                                                                      iv_table_name = 'MBEW'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                                      iv_db_connection = CONV #( dbcon )
+                                                                                                                                  IMPORTING es_output = ls_zmbew ).
+        cs_accdet-bklas = ls_zmbew-bklas.
+
+
     ENDCASE.
     ls_bklas-matnr     = cs_accdet-matnr.
     ls_bklas-bwkey     = cs_accdet-bwkey.
@@ -3268,7 +4175,7 @@ FORM hdb_check_table  USING                                 "n1710850
     APPEND lv_tab2 TO lt_chk_tab.
   ENDIF.
 
-   zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION c_hdb_dbcon_get
 *    EXPORTING
 *      i_subappl  = c_hdb_subappl

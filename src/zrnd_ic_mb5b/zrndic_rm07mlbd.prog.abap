@@ -1,18 +1,18 @@
-REPORT ZRNDIC_RM07MLBD.
+REPORT zrndic_rm07mlbd.
 *
 **ENHANCEMENT-POINT RM07MLBD_G4 SPOTS ES_RM07MLBD STATIC.
 INITIALIZATION.
-DATA: mgv_matnr_prog LIKE rsvar-report,
-            mgv_matnr_selopt_tab like rsldbdfs occurs 0 with header line.
-FIELD-SYMBOLS <mgv_matnr_selopt_conv> TYPE STANDARD TABLE.
+  DATA: mgv_matnr_prog       LIKE rsvar-report,
+        mgv_matnr_selopt_tab LIKE rsldbdfs OCCURS 0 WITH HEADER LINE.
+  FIELD-SYMBOLS <mgv_matnr_selopt_conv> TYPE STANDARD TABLE.
 
 
 
 **ENHANCEMENT-POINT RM07MLBD_G5 SPOTS ES_RM07MLBD.
-mgv_matnr_prog = sy-repid.
-mgv_matnr_selopt_tab-name = 'MATNR' .
-append mgv_matnr_selopt_tab.
-zcl_todo_list=>replace_fm( ).
+  mgv_matnr_prog = sy-repid.
+  mgv_matnr_selopt_tab-name = 'MATNR' .
+  APPEND mgv_matnr_selopt_tab.
+  zcl_todo_list=>replace_fm( ).
 *call function 'MGV_SELOP_AFTER_INITIALIZATION'
 *     EXPORTING
 *         PROGRAM        = mgv_matnr_prog
@@ -23,27 +23,27 @@ zcl_todo_list=>replace_fm( ).
 *         OTHERS         = 2
 *          .
 
-data: lt_sel_dtel type  rsseldtel occurs 0,                "MPN note 1038652
-      ls_sel_dtel type  rsseldtel.
+  DATA: lt_sel_dtel TYPE rsseldtel OCCURS 0,                "MPN note 1038652
+        ls_sel_dtel TYPE rsseldtel.
 
-    ls_sel_dtel-name = 'MFRPN'.
-    ls_sel_dtel-kind = 'S'.
-    ls_sel_dtel-datenelment = 'MFRPN'.
-    append ls_sel_dtel to lt_sel_dtel.
+  ls_sel_dtel-name = 'MFRPN'.
+  ls_sel_dtel-kind = 'S'.
+  ls_sel_dtel-datenelment = 'MFRPN'.
+  APPEND ls_sel_dtel TO lt_sel_dtel.
 
-call function 'SELECTION_TEXTS_MODIFY_DTEL'
-      exporting
-        program                     = sy-repid
-      tables
-        sel_dtel                    = lt_sel_dtel
-     exceptions
-       program_not_found           = 1
-       program_cannot_be_generated = 2
-        others                      = 3.
-    if sy-subrc <> 0.
+  CALL FUNCTION 'SELECTION_TEXTS_MODIFY_DTEL'
+    EXPORTING
+      program                     = sy-repid
+    TABLES
+      sel_dtel                    = lt_sel_dtel
+    EXCEPTIONS
+      program_not_found           = 1
+      program_cannot_be_generated = 2
+      OTHERS                      = 3.
+  IF sy-subrc <> 0.
 * MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
 *         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
-    endif.
+  ENDIF.
 
 
 **ENHANCEMENT-POINT RM07MLBD_G6 SPOTS ES_RM07MLBD STATIC.
@@ -51,155 +51,155 @@ START-OF-SELECTION.
 
 
 **ENHANCEMENT-POINT RM07MLBD_G7 SPOTS ES_RM07MLBD.
-LOOP AT mgv_matnr_selopt_tab.
+  LOOP AT mgv_matnr_selopt_tab.
     CONCATENATE mgv_matnr_selopt_tab-name'[]' INTO
     mgv_matnr_selopt_tab-name.
     ASSIGN (mgv_matnr_selopt_tab-name) TO <mgv_matnr_selopt_conv>.
     IF sy-subrc IS INITIAL.
       CALL FUNCTION 'MGV_SELOP_AFTER_START_OF_SEL'
-           EXPORTING
-                SELOPT_NAME = mgv_matnr_selopt_tab-name
-           TABLES
-                RANGE       = <mgv_matnr_selopt_conv>.
+        EXPORTING
+          selopt_name = mgv_matnr_selopt_tab-name
+        TABLES
+          range       = <mgv_matnr_selopt_conv>.
     ENDIF.
   ENDLOOP.
 
 *
-TYPE-POOLS:  imrep,                   " Typen Bestandsführungsreporting
-             slis.                    " Typen Listviewer
+  TYPE-POOLS:  imrep,                   " Typen Bestandsführungsreporting
+               slis.                    " Typen Listviewer
 *
 ** allow the interactions 'Specify drill-down' etc..         "n890109
-TYPE-POOLS : kkblo.          "Korrektur ALV                 "n890109
+  TYPE-POOLS : kkblo.          "Korrektur ALV                 "n890109
 *
-INCLUDE:  zrndic_rm07mldd.     " reportspezifische Datendefinitionen
+  INCLUDE:  zrndic_rm07mldd.     " reportspezifische Datendefinitionen
 
 * controls the "expensive" checks like authorization, etc.  "n878753
-DATA : g_flag_launched(01)   TYPE  c.                       "n878753
+  DATA : g_flag_launched(01)   TYPE  c.                     "n878753
 
 * working fields for the performance improvements           "n921165
-DATA : g_flag_db_parameters(01)        TYPE  c,             "n921165
-       g_f_database(03)      TYPE  c,                       "n921165
+  DATA : g_flag_db_parameters(01) TYPE c,                   "n921165
+         g_f_database(03)         TYPE c,                   "n921165
                                                             "n921165
-       g_cnt_radio           TYPE  i,                       "n921165
-       g_cnt_error_dba       TYPE  i.                       "n921165
+         g_cnt_radio              TYPE i,                   "n921165
+         g_cnt_error_dba          TYPE i.                   "n921165
                                                             "n921165
-DATA : g_tabix_set           TYPE  sy-tabix,                "n921165
-       g_flag_sorted         TYPE  c.                       "n921165
+  DATA : g_tabix_set   TYPE sy-tabix,                       "n921165
+         g_flag_sorted TYPE c.                              "n921165
                                                             "n921165
 * these flags allow to ignore multiple stops at dynamic     "n921165
 * BREAK-POINTs in LOOPs                                     "n921165
-DATA : BEGIN OF g_flag_break,                               "n921165
-         b1(01)              TYPE  c   VALUE 'X',           "n921165
-         b2(01)              TYPE  c   VALUE 'X',           "n921165
-         b3(01)              TYPE  c   VALUE 'X',           "n921165
-         b4(01)              TYPE  c   VALUE 'X',           "n921165
-         b5(01)              TYPE  c   VALUE 'X',           "n921165
-         b6(01)              TYPE  c   VALUE 'X',           "n921165
-         b7(01)              TYPE  c   VALUE 'X',           "n921165
-         b8(01)              TYPE  c   VALUE 'X',           "n921165
-       END OF g_flag_break.                                 "n921165
+  DATA : BEGIN OF g_flag_break,                             "n921165
+           b1(01) TYPE c VALUE 'X',                         "n921165
+           b2(01) TYPE c VALUE 'X',                         "n921165
+           b3(01) TYPE c VALUE 'X',                         "n921165
+           b4(01) TYPE c VALUE 'X',                         "n921165
+           b5(01) TYPE c VALUE 'X',                         "n921165
+           b6(01) TYPE c VALUE 'X',                         "n921165
+           b7(01) TYPE c VALUE 'X',                         "n921165
+           b8(01) TYPE c VALUE 'X',                         "n921165
+         END OF g_flag_break.                               "n921165
 
-DATA:  d_from(10) TYPE c,                                   "n1117067
-       d_to(10)   TYPE c.                                   "n1117067
+  DATA:  d_from(10) TYPE c,                                 "n1117067
+         d_to(10)   TYPE c.                                 "n1117067
 
-DATA:  g_f_msegex_act(1) TYPE c.                            "n1558298
+  DATA:  g_f_msegex_act(1) TYPE c.                          "n1558298
 
 *----------------- note 1481757 typedefinition for error-messages-------*
 
-TYPES: BEGIN OF mbarc_message,                              "n1481757
-         msgid LIKE sy-msgid,                               "n1481757
-         msgno LIKE sy-msgno,                               "n1481757
-         msgv1 LIKE sy-msgv1,                               "n1481757
-         msgv2 LIKE sy-msgv2,                               "n1481757
-         msgv3 LIKE sy-msgv3,                               "n1481757
-         msgv4 LIKE sy-msgv4,                               "n1481757
-       END OF mbarc_message.                                "n1481757
-TYPES: mbarc_message_tab TYPE mbarc_message OCCURS 0.       "n1481757
-DATA: archive_messages  TYPE mbarc_message_tab WITH HEADER LINE, "n1481757
-      g_flag_answer(01)     TYPE  c.                        "n1481757
+  TYPES: BEGIN OF mbarc_message,                            "n1481757
+           msgid LIKE sy-msgid,                             "n1481757
+           msgno LIKE sy-msgno,                             "n1481757
+           msgv1 LIKE sy-msgv1,                             "n1481757
+           msgv2 LIKE sy-msgv2,                             "n1481757
+           msgv3 LIKE sy-msgv3,                             "n1481757
+           msgv4 LIKE sy-msgv4,                             "n1481757
+         END OF mbarc_message.                              "n1481757
+  TYPES: mbarc_message_tab TYPE mbarc_message OCCURS 0.     "n1481757
+  DATA: archive_messages  TYPE mbarc_message_tab WITH HEADER LINE, "n1481757
+        g_flag_answer(01) TYPE c.                           "n1481757
 
 *----------end of note 1481757 typedefinition for error-messages------*
 
-DATA: gv_switch_ehp6ru TYPE boole_d.
+  DATA: gv_switch_ehp6ru TYPE boole_d.
 
-DATA:      dbcon           TYPE dbcon_name,                 "n1710850
-           dbcon_active    TYPE dbcon_name.                 "n1710850
-CONSTANTS: c_hdb_dbcon_get TYPE funcname VALUE 'MM_HDB_DBCON_GET', "n1710850
-           c_hdb_subappl   TYPE program  VALUE 'MB5B'.      "n1710850
+  DATA:      dbcon        TYPE dbcon_name,                  "n1710850
+             dbcon_active TYPE dbcon_name.                  "n1710850
+  CONSTANTS: c_hdb_dbcon_get TYPE funcname VALUE 'MM_HDB_DBCON_GET', "n1710850
+             c_hdb_subappl   TYPE program VALUE 'MB5B'.     "n1710850
 
 
-DATA: gv_ui_opt_active TYPE abap_bool.                      "1790231
+  DATA: gv_ui_opt_active TYPE abap_bool.                    "1790231
 
-DATA: gv_where_clause   TYPE string,                        "n_1899544
-      gv_not_authorized TYPE string.                        "n_1899544
+  DATA: gv_where_clause   TYPE string,                      "n_1899544
+        gv_not_authorized TYPE string.                      "n_1899544
 
 *-----------------------------------------------------------"n571473
 * define the selection screen here                          "n571473
 *-----------------------------------------------------------"n571473
-SELECTION-SCREEN BEGIN OF BLOCK database-selection
-          WITH FRAME TITLE text-001.
+  SELECTION-SCREEN BEGIN OF BLOCK database-selection
+            WITH FRAME TITLE text-001.
 *  Text-001: Datenbankabgrenzungen
-SELECT-OPTIONS: matnr FOR zmard-matnr MEMORY ID mat
-                                     MATCHCODE OBJECT mat1.
-"ENHANCEMENT-POINT RM07MLBD_01 SPOTS ES_RM07MLBD STATIC.
+  SELECT-OPTIONS: matnr FOR zmard-matnr MEMORY ID mat
+                                       MATCHCODE OBJECT mat1.
+  "ENHANCEMENT-POINT RM07MLBD_01 SPOTS ES_RM07MLBD STATIC.
 * DI A&D MPN
-SELECT-OPTIONS:
-                MFRPN FOR zMARA-MFRPN MEMORY ID MPN
-                              MATCHCODE OBJECT HTN.
-SELECT-OPTIONS:
-                bukrs FOR zt001-bukrs  MEMORY ID buk,
-                hkont FOR zbseg-hkont  MODIF  ID hkt,
-                werks FOR zt001w-werks MEMORY ID wrk,
-                lgort FOR zt001l-lgort,
-                charg FOR zmchb-charg,
-                bwtar FOR zmbew-bwtar,
-                bwart FOR zmseg-bwart.
-PARAMETERS sobkz LIKE zmseg-sobkz.
-SELECTION-SCREEN SKIP.
-SELECT-OPTIONS: datum FOR zmkpf-budat NO-EXTENSION.
+  SELECT-OPTIONS:
+                  mfrpn FOR zmara-mfrpn MEMORY ID mpn
+                                MATCHCODE OBJECT htn.
+  SELECT-OPTIONS:
+                  bukrs FOR zt001-bukrs  MEMORY ID buk,
+                  hkont FOR zbseg-hkont  MODIF  ID hkt,
+                  werks FOR zt001w-werks MEMORY ID wrk,
+                  lgort FOR zt001l-lgort,
+                  charg FOR zmchb-charg,
+                  bwtar FOR zmbew-bwtar,
+                  bwart FOR zmseg-bwart.
+  PARAMETERS sobkz LIKE zmseg-sobkz.
+  SELECTION-SCREEN SKIP.
+  SELECT-OPTIONS: datum FOR zmkpf-budat NO-EXTENSION.
 *  Datumsintervall für Selektion
-SELECTION-SCREEN END OF BLOCK database-selection.
+  SELECTION-SCREEN END OF BLOCK database-selection.
 
 *----------------------------------------------------------------------*
 
-SELECTION-SCREEN BEGIN OF BLOCK bestandsart
-WITH FRAME TITLE text-002.
+  SELECTION-SCREEN BEGIN OF BLOCK bestandsart
+  WITH FRAME TITLE text-002.
 *  Text-002: Bestandsart
 
-SELECTION-SCREEN BEGIN OF LINE.
-PARAMETERS lgbst LIKE zam07m-lgbst RADIOBUTTON GROUP bart DEFAULT 'X'.
-SELECTION-SCREEN COMMENT 4(50) text-010 FOR FIELD lgbst.
+  SELECTION-SCREEN BEGIN OF LINE.
+  PARAMETERS lgbst LIKE zam07m-lgbst RADIOBUTTON GROUP bart DEFAULT 'X'.
+  SELECTION-SCREEN COMMENT 4(50) text-010 FOR FIELD lgbst.
 *  Text-010: Lagerort-/Chargenbestand
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN BEGIN OF LINE.
-PARAMETERS bwbst LIKE zam07m-bwbst RADIOBUTTON GROUP bart.
-SELECTION-SCREEN COMMENT 4(50) text-011 FOR FIELD bwbst.
+  SELECTION-SCREEN BEGIN OF LINE.
+  PARAMETERS bwbst LIKE zam07m-bwbst RADIOBUTTON GROUP bart.
+  SELECTION-SCREEN COMMENT 4(50) text-011 FOR FIELD bwbst.
 *  Text-011: bewerteter Bestand
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN BEGIN OF LINE.
-PARAMETERS sbbst LIKE zam07m-sbbst RADIOBUTTON GROUP bart.
-SELECTION-SCREEN COMMENT 4(50) text-012 FOR FIELD sbbst.
+  SELECTION-SCREEN BEGIN OF LINE.
+  PARAMETERS sbbst LIKE zam07m-sbbst RADIOBUTTON GROUP bart.
+  SELECTION-SCREEN COMMENT 4(50) text-012 FOR FIELD sbbst.
 *  Text-012: Sonderbestand
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN END OF BLOCK bestandsart.
+  SELECTION-SCREEN END OF BLOCK bestandsart.
 
 *----------------------------------------------------------------------*
 
 * improved definition of parameters for scope of list       "n599218
 
-SELECTION-SCREEN BEGIN OF BLOCK listumfang
-  WITH FRAME TITLE text-003.  "Listumfang
+  SELECTION-SCREEN BEGIN OF BLOCK listumfang
+    WITH FRAME TITLE text-003.  "Listumfang
 
 * the following 3 parameters became obsolete do not use     "n599218
 * anymor. They are still here to inform the user about      "n599218
 * that he is using old variants or SUBMIT commands          "n599218
-PARAMETERS :                                                "n599218
-  xonul  LIKE zam07m-xonul            NO-DISPLAY,            "n599218
-  xvbst  LIKE zam07m-xvbst            NO-DISPLAY,            "n599218
-  xnvbst LIKE zam07m-xnvbs            NO-DISPLAY.            "n599218
+  PARAMETERS :                                              "n599218
+    xonul  LIKE zam07m-xonul NO-DISPLAY,                    "n599218
+    xvbst  LIKE zam07m-xvbst NO-DISPLAY,                    "n599218
+    xnvbst LIKE zam07m-xnvbs NO-DISPLAY.                    "n599218
 
 * 7 new categories for the scope of list                    "n599218
 *                                                           "n599218
@@ -217,180 +217,180 @@ PARAMETERS :                                                "n599218
 *                                                           "n599218
 * definition of the pushbutton : show or hide the following "n599218
 * parameters for the scope of list                          "n599218
-SELECTION-SCREEN PUSHBUTTON /1(20) pb_liu                   "n599218
-                           USER-COMMAND liu.                "n599218
+  SELECTION-SCREEN PUSHBUTTON /1(20) pb_liu                 "n599218
+                             USER-COMMAND liu.              "n599218
                                                             "n599218
 * text line : materials with movements                      "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN COMMENT 1(55) text-072                     "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN COMMENT 1(55) text-072                   "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * with movements / start = zero  =  end = zero              "n599218
 *  1   I yes  I =  zero    I =  I =  zero  I pa_wdzer       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_wdzer    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_wdzer    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   text-083 : no opening stock ; no closing stock          "n599218
-SELECTION-SCREEN COMMENT 5(70) text-083                     "n599218
-                         FOR FIELD pa_wdzer                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-083                   "n599218
+                           FOR FIELD pa_wdzer               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * with movements / start = zero  =  end <> zero             "n599218
 *  2   I yes  I =  zero    I <> I <> zero  I pa_wdzew       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_wdzew    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_wdzew    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   text-084 : no opening stock ; with closing stock        "n599218
-SELECTION-SCREEN COMMENT 5(70) text-084                     "n599218
-                         FOR FIELD pa_wdzew                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-084                   "n599218
+                           FOR FIELD pa_wdzew               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * with movements / start stock <> 0 / end stock = 0         "n599218
 *  3   I yes  I <> zero    I <> I =  zero  I pa_wdwiz       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_wdwiz    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_wdwiz    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   text-085 : with opening stock ; no closing stock        "n599218
-SELECTION-SCREEN COMMENT 5(70) text-085                     "n599218
-                         FOR FIELD pa_wdwiz                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-085                   "n599218
+                           FOR FIELD pa_wdwiz               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * with movements / with start and end stocks / different    "n599218
 *  4   I yes  I <> zero    I <> I <> zero  I pa_wdwuw       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_wdwuw    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_wdwuw    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   with opening stock ; with closing stock ; changed       "n599218
-SELECTION-SCREEN COMMENT 5(70) text-086                     "n599218
-                         FOR FIELD pa_wdwuw                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-086                   "n599218
+                           FOR FIELD pa_wdwuw               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * with movements / with start and end stock / equal         "n599218
 *  5   I yes  I <> zero    I =  I <> zero  I pa_wdwew       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_wdwew    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_wdwew    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   with opening stock ; with closing stock ; non-changed   "n599218
-SELECTION-SCREEN COMMENT 5(70) text-087                     "n599218
-                         FOR FIELD pa_wdwew                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-087                   "n599218
+                           FOR FIELD pa_wdwew               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * text line : materials without movements                   "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN COMMENT 1(55) text-073                     "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN COMMENT 1(55) text-073                   "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * materials without movements / stocks = zero               "n599218
 *  6   I no   I =  zero    I =  I =  zero  I pa_ndzer       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_ndzer    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_ndzer    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   text-083 : no opening stock ; no closing stock          "n599218
-SELECTION-SCREEN COMMENT 5(70) text-083                     "n599218
-                         FOR FIELD pa_ndzer                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-083                   "n599218
+                           FOR FIELD pa_ndzer               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
 * materials without movements / with start or end stock     "n599218
 *  7   I no   I <> zero    I =  I <> zero  I pa_ndsto       "n599218
-SELECTION-SCREEN BEGIN OF LINE.                             "n599218
-SELECTION-SCREEN POSITION 2.                                "n599218
-PARAMETERS : pa_ndsto    LIKE zam07m-mb5b_xonul              "n599218
-                         MODIF ID liu.                      "n599218
+  SELECTION-SCREEN BEGIN OF LINE.                           "n599218
+  SELECTION-SCREEN POSITION 2.                              "n599218
+  PARAMETERS : pa_ndsto    LIKE zam07m-mb5b_xonul           "n599218
+                           MODIF ID liu.                    "n599218
 *   with opening stock ; with closing stock ; non-changed   "n599218
-SELECTION-SCREEN COMMENT 5(70) text-087                     "n599218
-                         FOR FIELD pa_ndsto                 "n599218
-                         MODIF ID liu.                      "n599218
-SELECTION-SCREEN END OF LINE.                               "n599218
+  SELECTION-SCREEN COMMENT 5(70) text-087                   "n599218
+                           FOR FIELD pa_ndsto               "n599218
+                           MODIF ID liu.                    "n599218
+  SELECTION-SCREEN END OF LINE.                             "n599218
                                                             "n599218
-SELECTION-SCREEN END OF BLOCK listumfang.
+  SELECTION-SCREEN END OF BLOCK listumfang.
 
 *----------------------------------------------------------------------*
 
-SELECTION-SCREEN BEGIN OF BLOCK einstellungen
-   WITH FRAME TITLE text-068.  "Settings
+  SELECTION-SCREEN BEGIN OF BLOCK einstellungen
+     WITH FRAME TITLE text-068.  "Settings
 
 * parameter for totals only - hierseq. list
 * corresponding display variant
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN POSITION 1.
-PARAMETERS xsum          LIKE zam07m-xsum.
-SELECTION-SCREEN COMMENT 4(60) text-090 FOR FIELD xsum.
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+  SELECTION-SCREEN POSITION 1.
+  PARAMETERS xsum          LIKE zam07m-xsum.
+  SELECTION-SCREEN COMMENT 4(60) text-090 FOR FIELD xsum.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 5(30) text-091 FOR FIELD pa_suvar.
-SELECTION-SCREEN POSITION 40.
-PARAMETERS: pa_suvar LIKE disvariant-variant.
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+  SELECTION-SCREEN COMMENT 5(30) text-091 FOR FIELD pa_suvar.
+  SELECTION-SCREEN POSITION 40.
+  PARAMETERS: pa_suvar LIKE disvariant-variant.
+  SELECTION-SCREEN END OF LINE.
 
 * parameter for totals only - flat list + corresponding display variant
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN POSITION 1.
-PARAMETERS pa_sumfl LIKE zam07m-xsum.
-SELECTION-SCREEN COMMENT 4(60) text-092 FOR FIELD pa_sumfl.
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+  SELECTION-SCREEN POSITION 1.
+  PARAMETERS pa_sumfl LIKE zam07m-xsum.
+  SELECTION-SCREEN COMMENT 4(60) text-092 FOR FIELD pa_sumfl.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN BEGIN OF LINE.                             "1790231
-SELECTION-SCREEN POSITION 5.                                "1790231
-PARAMETERS: p_grid TYPE char1 "mb_opt_alv_grid_ui                  "1790231
-                    MODIF ID opt USER-COMMAND opt.          "1790231
-SELECTION-SCREEN COMMENT 7(50) FOR FIELD p_grid             "1790231
-                    MODIF ID opt.                           "1790231
-SELECTION-SCREEN END OF LINE.                               "1790231
+  SELECTION-SCREEN BEGIN OF LINE.                           "1790231
+  SELECTION-SCREEN POSITION 5.                              "1790231
+  PARAMETERS: p_grid TYPE char1 "mb_opt_alv_grid_ui                  "1790231
+                      MODIF ID opt USER-COMMAND opt.        "1790231
+  SELECTION-SCREEN COMMENT 7(50) FOR FIELD p_grid           "1790231
+                      MODIF ID opt.                         "1790231
+  SELECTION-SCREEN END OF LINE.                             "1790231
 
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 5(30) text-091 FOR FIELD pa_sflva.
-SELECTION-SCREEN POSITION 40.
-PARAMETERS: pa_sflva LIKE disvariant-variant.
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+  SELECTION-SCREEN COMMENT 5(30) text-091 FOR FIELD pa_sflva.
+  SELECTION-SCREEN POSITION 40.
+  PARAMETERS: pa_sflva LIKE disvariant-variant.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN POSITION 1.
-PARAMETERS xchar LIKE zam07m-xchrg.
-SELECTION-SCREEN COMMENT 4(50) text-015 FOR FIELD xchar.
+  SELECTION-SCREEN BEGIN OF LINE.
+  SELECTION-SCREEN POSITION 1.
+  PARAMETERS xchar LIKE zam07m-xchrg.
+  SELECTION-SCREEN COMMENT 4(50) text-015 FOR FIELD xchar.
 *  Text-015: nur chargenpflichtige Materialien
 *  Das Kennzeichen 'xchar' bestimmt die Art der Listausgabe entweder
 *  auf Material- oder Chargenebene.
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN END OF LINE.
 
-SELECTION-SCREEN BEGIN OF LINE.                             "838360_v
-SELECTION-SCREEN POSITION 4.
-PARAMETERS xnomchb LIKE zam07m-mb5b_xnomchb.
-SELECTION-SCREEN COMMENT 6(50) text-089 FOR FIELD xnomchb.
+  SELECTION-SCREEN BEGIN OF LINE.                           "838360_v
+  SELECTION-SCREEN POSITION 4.
+  PARAMETERS xnomchb LIKE zam07m-mb5b_xnomchb.
+  SELECTION-SCREEN COMMENT 6(50) text-089 FOR FIELD xnomchb.
 *  Text-089: Auch Chargen ohne Bestandssegment
-SELECTION-SCREEN END OF LINE.                               "838360_^
+  SELECTION-SCREEN END OF LINE.                             "838360_^
 
 * the function "No reversal movements" is only         "n571473
 * available from relaese 4.5B and higher               "n571473
 * ( TEXT-026 : No reversal movements )                 "n571473
-SELECTION-SCREEN BEGIN OF LINE.                             "n571473
-SELECTION-SCREEN POSITION 1.                                "n571473
-PARAMETERS nosto LIKE zam07m-nosto.                          "n571473
-SELECTION-SCREEN COMMENT 4(50) text-026                     "n571473
-                       FOR FIELD nosto.                     "n571473
-SELECTION-SCREEN END OF LINE.                               "n571473
+  SELECTION-SCREEN BEGIN OF LINE.                           "n571473
+  SELECTION-SCREEN POSITION 1.                              "n571473
+  PARAMETERS nosto LIKE zam07m-nosto.                       "n571473
+  SELECTION-SCREEN COMMENT 4(50) text-026                   "n571473
+                         FOR FIELD nosto.                   "n571473
+  SELECTION-SCREEN END OF LINE.                             "n571473
 
-SELECTION-SCREEN END OF BLOCK einstellungen.
+  SELECTION-SCREEN END OF BLOCK einstellungen.
 
 *----------------------------------------------------------------------*
 
-SELECTION-SCREEN BEGIN OF BLOCK liste WITH FRAME TITLE text-040.
-PARAMETERS: p_vari LIKE disvariant-variant.
-SELECTION-SCREEN END OF BLOCK liste.
+  SELECTION-SCREEN BEGIN OF BLOCK liste WITH FRAME TITLE text-040.
+  PARAMETERS: p_vari LIKE disvariant-variant.
+  SELECTION-SCREEN END OF BLOCK liste.
 
 *----------------------------------------------------------------------*
 
@@ -400,66 +400,66 @@ SELECTION-SCREEN END OF BLOCK liste.
 * DB6, Informix, or MaxDB                                   "n921165
                                                             "n921165
 * define database access for best runtime                   "n921165
-SELECTION-SCREEN BEGIN OF BLOCK db                          "n921165
-                             WITH FRAME TITLE text-111.     "n921165
+  SELECTION-SCREEN BEGIN OF BLOCK db                        "n921165
+                               WITH FRAME TITLE text-111.   "n921165
                                                             "n921165
 * Database determines best access                           "n921165
-SELECTION-SCREEN : BEGIN OF LINE.                           "n921165
-PARAMETERS : pa_dbstd    LIKE  zam07m-xselk                  "n921165
-                         MODIF ID dba                       "n921165
-                         DEFAULT 'X'                        "n921165
-                         RADIOBUTTON GROUP db.              "n921165
-SELECTION-SCREEN : COMMENT 3(70) text-112                   "n921165
-                         FOR FIELD pa_dbstd                 "n921165
-                         MODIF ID dba.                      "n921165
-SELECTION-SCREEN : END OF LINE.                             "n921165
+  SELECTION-SCREEN : BEGIN OF LINE.                         "n921165
+  PARAMETERS : pa_dbstd    LIKE  zam07m-xselk               "n921165
+                           MODIF ID dba                     "n921165
+                           DEFAULT 'X'                      "n921165
+                           RADIOBUTTON GROUP db.            "n921165
+  SELECTION-SCREEN : COMMENT 3(70) text-112                 "n921165
+                           FOR FIELD pa_dbstd               "n921165
+                           MODIF ID dba.                    "n921165
+  SELECTION-SCREEN : END OF LINE.                           "n921165
                                                             "n921165
 * Access via Material number                                "n921165
-SELECTION-SCREEN : BEGIN OF LINE.                           "n921165
-PARAMETERS : pa_dbmat    LIKE  zam07m-xselk                  "n921165
-                         MODIF ID dba                       "n921165
-                         RADIOBUTTON GROUP db.              "n921165
-SELECTION-SCREEN : COMMENT 3(70) text-113                   "n921165
-                         FOR FIELD pa_dbmat                 "n921165
-                         MODIF ID dba.                      "n921165
-SELECTION-SCREEN : END OF LINE.                             "n921165
+  SELECTION-SCREEN : BEGIN OF LINE.                         "n921165
+  PARAMETERS : pa_dbmat    LIKE  zam07m-xselk               "n921165
+                           MODIF ID dba                     "n921165
+                           RADIOBUTTON GROUP db.            "n921165
+  SELECTION-SCREEN : COMMENT 3(70) text-113                 "n921165
+                           FOR FIELD pa_dbmat               "n921165
+                           MODIF ID dba.                    "n921165
+  SELECTION-SCREEN : END OF LINE.                           "n921165
                                                             "n921165
 * Access via Posting Date                                   "n921165
-SELECTION-SCREEN : BEGIN OF LINE.                           "n921165
-PARAMETERS : pa_dbdat    LIKE  zam07m-xselk                  "n921165
-                         MODIF ID dba                       "n921165
-                         RADIOBUTTON GROUP db.              "n921165
-SELECTION-SCREEN : COMMENT 3(70) text-114                   "n921165
-                         FOR FIELD pa_dbdat                 "n921165
-                         MODIF ID dba.                      "n921165
-SELECTION-SCREEN : END OF LINE.                             "n921165
+  SELECTION-SCREEN : BEGIN OF LINE.                         "n921165
+  PARAMETERS : pa_dbdat    LIKE  zam07m-xselk               "n921165
+                           MODIF ID dba                     "n921165
+                           RADIOBUTTON GROUP db.            "n921165
+  SELECTION-SCREEN : COMMENT 3(70) text-114                 "n921165
+                           FOR FIELD pa_dbdat               "n921165
+                           MODIF ID dba.                    "n921165
+  SELECTION-SCREEN : END OF LINE.                           "n921165
                                                             "n921165
-SELECTION-SCREEN END OF BLOCK db.                           "n921165
+  SELECTION-SCREEN END OF BLOCK db.                         "n921165
 
 *------------------------ begin of note 1481757 ------------------------*
 *---------- selection-sreen for archive --------------------------------*
 
-SELECTION-SCREEN BEGIN OF BLOCK arch WITH FRAME TITLE text-131. "n1481757
+  SELECTION-SCREEN BEGIN OF BLOCK arch WITH FRAME TITLE text-131. "n1481757
                                                             "n1481757
 * create checkbox on the screen                                 "n1481757
                                                             "n1481757
-PARAMETERS: archive  TYPE zmb5b_archive AS CHECKBOX DEFAULT ' ' "n1481757
-                                        USER-COMMAND us_archive. "n1481757
+  PARAMETERS: archive  TYPE zmb5b_archive AS CHECKBOX DEFAULT ' ' "n1481757
+                                          USER-COMMAND us_archive. "n1481757
                                                             "n1481757
 *  parameter for the archive info structure                     "n1481757
-PARAMETERS : pa_aistr    LIKE aind_str1-archindex.          "n1481757
+  PARAMETERS : pa_aistr    LIKE aind_str1-archindex.        "n1481757
                                                             "n1481757
-SELECTION-SCREEN END OF BLOCK arch.                         "n1481757
+  SELECTION-SCREEN END OF BLOCK arch.                       "n1481757
 
 * used for ABAP Unit Test see local class of CL_IM_RM07MLBD_DBSYS_OPT
-PARAMETERS: p_aut TYPE char1 NO-DISPLAY.
+  PARAMETERS: p_aut TYPE char1 NO-DISPLAY.
 
 * -------------------- end of selection-sreen for archive---------------*
 
 * ------------------- F4-Help --------- get info-structure -------------*
 * datadefinition                                               "n1481757
-DATA: g_f_f4_mode(01) TYPE  c,                              "n1481757
-      g_f_f4_archindex LIKE  aind_str1-archindex.           "n1481757
+  DATA: g_f_f4_mode(01)  TYPE c,                            "n1481757
+        g_f_f4_archindex LIKE aind_str1-archindex.          "n1481757
                                                             "n1481757
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_vari.
@@ -528,7 +528,7 @@ INITIALIZATION.
   gv_switch_ehp6ru = zcl_fin_locru_switch_check=>fin_locru_sfws_ui_02( ).
 
 * begin of secondary database settings                     "n1710850
-    zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'
 *    EXPORTING
 *      funcname           = c_hdb_dbcon_get
@@ -590,7 +590,7 @@ AT SELECTION-SCREEN.
       IF  matnr[] IS INITIAL.                               "n921165
         SET CURSOR         FIELD  pa_dbmat.                 "n921165
         zcl_todo_list=>ivan( ).
-       " MESSAGE  w895      WITH  text-115.                  "n921165
+        " MESSAGE  w895      WITH  text-115.                  "n921165
       ENDIF.                                                "n921165
                                                             "n921165
     ELSEIF  pa_dbdat = 'X'.                                 "n921165
@@ -599,7 +599,7 @@ AT SELECTION-SCREEN.
           datum-high IS INITIAL.                            "n921165
         SET CURSOR         FIELD  pa_dbdat.                 "n921165
         zcl_todo_list=>ivan( ).
-       " MESSAGE  w895      WITH  text-115.                  "n921165
+        " MESSAGE  w895      WITH  text-115.                  "n921165
       ENDIF.                                                "n921165
                                                             "n921165
     ENDIF.                                                  "n921165
@@ -616,8 +616,8 @@ AT SELECTION-SCREEN.
 *  ok, the old parameters are empty                         "n599218
   ELSE.                                                     "n599218
 *   text-088 : note 599218 : obsolete parameter used        "n599218
-zcl_todo_list=>ivan( ).
-   "MESSAGE e895             WITH  text-088.                "n599218
+    zcl_todo_list=>ivan( ).
+    "MESSAGE e895             WITH  text-088.                "n599218
   ENDIF.
 
 * did the user hit the pushbutton "Category" ?              "n599218
@@ -653,8 +653,8 @@ zcl_todo_list=>ivan( ).
       pa_sumfl = 'X'.
     SET CURSOR               FIELD 'XSUM'.
 *   select one sum list only
-zcl_todo_list=>ivan( ).
-   " MESSAGE  e895            WITH  text-093.
+    zcl_todo_list=>ivan( ).
+    " MESSAGE  e895            WITH  text-093.
   ENDIF.
 
   PERFORM eingaben_pruefen.
@@ -839,15 +839,15 @@ AT SELECTION-SCREEN OUTPUT.                                 "n599218
 START-OF-SELECTION.
 
 * NEW DB                                             "v hana_20120802
-zcl_todo_list=>ivan( ).
+  zcl_todo_list=>ivan( ).
   DATA:
 
-          "gr_badi_rm07mlbd_dbsys_opt TYPE REF TO rm07mlbd_dbsys_opt,
+    "gr_badi_rm07mlbd_dbsys_opt TYPE REF TO rm07mlbd_dbsys_opt,
 
-        gv_newdb        TYPE abap_bool,
-        gv_no_dbsys_opt TYPE abap_bool,
-        gt_stock_inventory TYPE zstock_inventory_tt,
-        gs_stock_inventory TYPE zstock_inventory_s.
+    gv_newdb           TYPE abap_bool,
+    gv_no_dbsys_opt    TYPE abap_bool,
+    gt_stock_inventory TYPE zstock_inventory_tt,
+    gs_stock_inventory TYPE zstock_inventory_s.
   DATA: gv_unittest     TYPE abap_bool,              "v hana_20120821
         bestand_opensql LIKE TABLE OF bestand,
         bestand_new_db  LIKE TABLE OF bestand.                "^ hana_20120821
@@ -866,7 +866,7 @@ zcl_todo_list=>ivan( ).
   AND archive  = abap_false     "not with archived data
   AND bwbst    = abap_false.    "no valuated stocks
     TRY.
-    zcl_todo_list=>ivan( ).
+        zcl_todo_list=>ivan( ).
 *        GET BADI gr_badi_rm07mlbd_dbsys_opt
 *          FILTERS
 *            dbsys_type = cl_db_sys=>dbsys_type.
@@ -1060,8 +1060,8 @@ END-OF-SELECTION.
 *    EXPORT lt_bestand FROM gt_stock_inventory
 *      TO MEMORY ID cl_mm_im_aut_master=>gc_memory_id_rm07mlbd.
 
-     EXPORT lt_bestand FROM gt_stock_inventory
-      TO MEMORY ID  'LT_BESTAND'.
+    EXPORT lt_bestand FROM gt_stock_inventory
+     TO MEMORY ID  'LT_BESTAND'.
     RETURN.
   ENDIF.
 
@@ -1209,7 +1209,7 @@ FORM user_command_totals                                    "#EC CALLED
 
   IF g_s_bestand_key IS INITIAL.   "notinh found ?
 *   Place the cursor on a table line
-   " MESSAGE                  s322.
+    " MESSAGE                  s322.
     EXIT.
   ENDIF.
 
@@ -1266,7 +1266,7 @@ FORM list_output_detail.
   APPEND events.
 
   IF  g_flag_break-b3 = 'X'.                                "n921164
-   " BREAK-POINT              ID mmim_rep_mb5b.              "n921164
+    " BREAK-POINT              ID mmim_rep_mb5b.              "n921164
 *   dynamic break-point : check input data for list viewer  "n921164
   ENDIF.                                                    "n921164
 
@@ -1358,10 +1358,10 @@ ENDFORM.                     "TOP_OF_PAGE_TOTALS
 FORM top_of_page_totals_render
          CHANGING cr_content TYPE REF TO cl_salv_form_element.
 
-  DATA: lr_grid      TYPE REF TO cl_salv_form_layout_grid,
-        lr_flow      TYPE REF TO cl_salv_form_layout_flow,
-        l_text(500)  TYPE c,
-        l_char(500)  TYPE c.
+  DATA: lr_grid     TYPE REF TO cl_salv_form_layout_grid,
+        lr_flow     TYPE REF TO cl_salv_form_layout_flow,
+        l_text(500) TYPE c,
+        l_char(500) TYPE c.
 
 *... create a grid
   CREATE OBJECT lr_grid.
@@ -1420,14 +1420,14 @@ ENDFORM.                     " top_of_page_render
 FORM create_alv_form_content_top
                    CHANGING cr_content TYPE REF TO cl_salv_form_element.
 
-  DATA: lr_grid      TYPE REF TO cl_salv_form_layout_grid,
-        lr_flow      TYPE REF TO cl_salv_form_layout_flow,
-        l_text(500)  TYPE c,
-        l_char(500)  TYPE c.
+  DATA: lr_grid     TYPE REF TO cl_salv_form_layout_grid,
+        lr_flow     TYPE REF TO cl_salv_form_layout_flow,
+        l_text(500) TYPE c,
+        l_char(500) TYPE c.
 
-  DATA: l_row          TYPE i,
-        l_figure(24)   TYPE c,
-        l_flag_tied_empties(01)   TYPE c.
+  DATA: l_row                   TYPE i,
+        l_figure(24)            TYPE c,
+        l_flag_tied_empties(01) TYPE c.
 
   DATA: l_f_text(60)        TYPE  c.                        "n999530
 
@@ -1471,7 +1471,7 @@ FORM create_alv_form_content_top
 
     WRITE g_s_bestand-werks  TO l_f_text.                   "n999530
     CONDENSE l_f_text.                                      "n999530
-    CONCATENATE l_f_text     zt001w-name1                    "n999530
+    CONCATENATE l_f_text     zt001w-name1                   "n999530
                              INTO  l_f_text                 "n999530
                              SEPARATED BY space.            "n999530
 
@@ -1537,7 +1537,7 @@ FORM create_alv_form_content_top
     MOVE  l_figure                TO  l_text+g_offset_qty(24).
 *   move  g_s_bestand-meins       to  l_text+g_offset_unit.    "n1018717
     MOVE  l_f_meins_external     TO  l_text+g_offset_unit.  "n1018717
-   " ENHANCEMENT-POINT EHP605_RM07MLBD_01 SPOTS ES_RM07MLBD .
+    " ENHANCEMENT-POINT EHP605_RM07MLBD_01 SPOTS ES_RM07MLBD .
   ELSE.
 * stocks and values on start date
     MOVE : g_date_line_from       TO  l_text.
@@ -1581,7 +1581,7 @@ FORM create_alv_form_content_top
 *   move  g_s_bestand-meins       to  l_text+g_offset_unit.    "n1018717
     MOVE  l_f_meins_external      TO  l_text+g_offset_unit. "n1018717
 
-   "ENHANCEMENT-POINT EHP605_RM07MLBD_03 SPOTS ES_RM07MLBD .
+    "ENHANCEMENT-POINT EHP605_RM07MLBD_03 SPOTS ES_RM07MLBD .
     WRITE g_s_bestand-sollwert     TO l_figure
                                   CURRENCY  g_s_bestand-waers.
     MOVE  l_figure                TO  l_text+g_offset_value(24).
@@ -1689,10 +1689,20 @@ FORM create_table_totals_hq.
 *     mode : valuated stocks
       IF  curm = '3'.
 *       valuation level is company code
-        zcl_todo_list=>replace_select( ).
+*        zcl_todo_list=>replace_select( ).
 *        SELECT SINGLE butxt  FROM t001
 *                             INTO g_f_butxt
 *          WHERE  bukrs = bestand-bwkey.
+
+        DATA ls_zt001 TYPE zt001.
+        DATA(lv_where_cond) = |BUKRS = `| && bestand-bwkey && |`|.
+        NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'butxt'
+                                                                                                                                                      iv_structure_name = 'ZT001'
+                                                                                                                                                      iv_table_name = 'T001'
+                                                                                                                                                      iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                                  IMPORTING es_output = ls_zt001 ).
+
+        g_f_butxt = ls_zt001-butxt.
 
         IF sy-subrc IS INITIAL.
           MOVE  g_f_butxt    TO  g_s_totals_header-name1.
@@ -1722,7 +1732,7 @@ FORM create_table_totals_hq.
     MOVE : g_date_line_from       TO  g_s_totals_item-stock_type,
            bestand-anfmenge       TO  g_s_totals_item-menge,
            bestand-anfwert        TO  g_s_totals_item-wert.
-   " ENHANCEMENT-POINT EHP605_RM07MLBD_08 SPOTS ES_RM07MLBD .
+    " ENHANCEMENT-POINT EHP605_RM07MLBD_08 SPOTS ES_RM07MLBD .
     PERFORM                       create_table_totals_hq_1.
 
 *   line with the good receipts
@@ -1861,11 +1871,24 @@ FORM create_table_for_detail.
     PERFORM f1000_select_mseg_mkpf.
     PERFORM belege_sortieren.
     PERFORM summen_bilden.                                  "1784986
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT matnr meins mtart FROM mara                      "1784986
 *      INTO CORRESPONDING FIELDS OF TABLE imara              "1784986
 *      WHERE  matnr  =  g_s_bestand_detail-matnr             "1784986
 *      ORDER BY PRIMARY KEY.                                 "1858578
+
+
+    DATA(lv_where_cond) = |BUKRS = `| && g_s_bestand_detail-matnr && |`|.
+
+    NEW zcl_rndic_call_select( )->zif_call_odata_sel_generic~call_generic_select(   EXPORTING iv_field_list = 'matnr meins mtart'
+                                                                                                                                                         iv_structure_name = 'ZMARA'
+                                                                                                                                                         iv_table_name = 'MARA'
+                                                                                                                                                         iv_where_clause =  lv_where_cond
+                                                                                                                              IMPORTING et_output = imara  ).
+
+
+
+
     PERFORM kontiert_aussortieren.                          "1784986
     CLEAR l_flag_sorted.
   ENDIF.
@@ -1971,7 +1994,7 @@ FORM create_table_totals_flat.
 * get the name of this plant                                "n999530
     PERFORM f2200_read_t001  USING  g_s_totals_flat-werks.  "n999530
 
-    MOVE  zt001w-name1        TO  g_s_totals_flat-name1.     "n999530
+    MOVE  zt001w-name1        TO  g_s_totals_flat-name1.    "n999530
 
     APPEND  g_s_totals_flat  TO  g_t_totals_flat.
   ENDLOOP.
@@ -2345,7 +2368,7 @@ FORM create_fieldcat_totals_hq.
   PERFORM  fc_hq
       USING  'G_T_TOTALS_HEADER'  'CHARG'  'MCHB'  'CHARG'.
 
- " ENHANCEMENT-POINT EHP605_RM07MLBD_14 SPOTS ES_RM07MLBD .
+  " ENHANCEMENT-POINT EHP605_RM07MLBD_14 SPOTS ES_RM07MLBD .
 
 ** part 2 : for the item table
 
@@ -2551,7 +2574,7 @@ ENDFORM.                     " alv_hierseq_list_totals
 FORM eingaben_pruefen.
 
 * check the entries only in releases >= 46B
-zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'MMIM_ENTRYCHECK_MAIN'
 *    TABLES
 *      it_matnr = matnr
@@ -2575,10 +2598,18 @@ zcl_todo_list=>replace_fm( ).
 *  Werksebene liegt:
 *  tcurm-bwkrs_cus = 1  =>  Bewertungskreis auf Werksebene,
 *  tcurm-bwkrs_cus = 3  =>  Bewertungskreis auf Buchungskreisebene.
-zcl_todo_list=>replace_select( ).
+* zcl_todo_list=>replace_select( ).
 *  SELECT bwkrs_cus FROM tcurm INTO curm
 *            ORDER BY PRIMARY KEY.
 *  ENDSELECT.
+
+  DATA ls_ztcurm TYPE ztcurm.
+
+  NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(   EXPORTING iv_field_list = 'bwkrs_cus'
+                                                                                                                                                       iv_structure_name = 'ZTCURM'
+                                                                                                                                                       iv_table_name = 'TCURM'
+                                                                                                                                  IMPORTING es_output = ls_ztcurm   ).
+  curm = ls_ztcurm-bwkrs_cus.
 
   IF xchar = ' ' AND NOT charg-low IS INITIAL.
     xchar = 'X'.
@@ -2593,7 +2624,7 @@ zcl_todo_list=>replace_select( ).
 *   Bitte ein Sonderbestandskennzeichen eingeben.
   ELSEIF sbbst = ' ' AND NOT sobkz IS INITIAL.
     CLEAR sobkz.
-     zcl_todo_list=>ivan( ).
+    zcl_todo_list=>ivan( ).
     "MESSAGE w287.
 *   Sonderbestandskennzeichen wird zurückgesetzt.
   ENDIF.
@@ -2615,13 +2646,13 @@ zcl_todo_list=>replace_select( ).
   IF bwbst = 'X' AND NOT charg IS INITIAL
     OR bwbst = 'X' AND NOT xchar IS INITIAL.
     CLEAR charg. REFRESH charg.
-     zcl_todo_list=>ivan( ).
+    zcl_todo_list=>ivan( ).
     "MESSAGE w285.
 *   Charge wird zurückgesetzt.
   ENDIF.
   IF bwbst = 'X' AND NOT lgort IS INITIAL.
     CLEAR lgort. REFRESH lgort.
-     zcl_todo_list=>ivan( ).
+    zcl_todo_list=>ivan( ).
     "MESSAGE w284.
 *   Lagerort wird zurückgesetzt.
   ENDIF.
@@ -2658,15 +2689,15 @@ zcl_todo_list=>replace_select( ).
       SET CURSOR             FIELD  'SOBKZ'.
 *     Sonderbestandskennzeichen nicht vorhanden
       zcl_todo_list=>ivan( ).
-     " MESSAGE                e221.
+      " MESSAGE                e221.
     ENDIF.
-   " END-ENHANCEMENT-SECTION.
+    " END-ENHANCEMENT-SECTION.
   ENDIF.
 
   IF bwbst = 'X' AND NOT bwart IS INITIAL.
     CLEAR bwart. REFRESH bwart.
     zcl_todo_list=>ivan( ).
-   "MESSAGE w298.
+    "MESSAGE w298.
 *   Bewegungsart wird zurückgesetzt
   ENDIF.
   IF bwbst = ' ' AND NOT bwtar IS INITIAL.
@@ -2715,7 +2746,7 @@ zcl_todo_list=>replace_select( ).
     IF  NOT alv_default_variant  IS INITIAL.                "n599218
 *     but the SAP-LIST-VIEWER will apply the existing       "n599218
 *     initial display variant / emerge warning 393 ?        "n599218
-        zcl_todo_list=>replace_fm( ).
+      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'ME_CHECK_T160M'               "n599218
 *        EXPORTING                                           "n599218
 *          i_arbgb = 'M7'                         "n599218
@@ -2764,7 +2795,7 @@ FORM variant_check_existence
     IF  NOT ls_vari_def-variant  IS INITIAL.
 *     but the SAP-LIST-VIEWER will apply the existing       "n599218
 *     initial display variant / emerge warning 393 ?        "n599218
-zcl_todo_list=>replace_fm( ).
+      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'ME_CHECK_T160M'               "n599218
 *        EXPORTING                                           "n599218
 *          i_arbgb = 'M7'                         "n599218
@@ -2791,7 +2822,7 @@ FORM get_the_default_variant
                    ls_vari     LIKE  disvariant
                    ls_vari_def LIKE  disvariant.
 
-   zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 
 *  CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
 *    EXPORTING
@@ -2819,7 +2850,7 @@ FORM variant_value_request_f4
 
   DATA : ls_vari_return      LIKE  disvariant.
 
-    zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 
 *  CALL FUNCTION 'REUSE_ALV_VARIANT_F4'
 *    EXPORTING
@@ -2851,12 +2882,12 @@ FORM aktuelle_bst_bwbst.
 
 * define local working areas  / for the result of the       "n450764
 * database selections and the control break                 "n450764
-  DATA : l_t_mbew              TYPE  stab_mbew,             "n450764
-         l_s_mbew              TYPE  stype_mbew,            "n450764
+  DATA : l_t_mbew         TYPE stab_mbew,                   "n450764
+         l_s_mbew         TYPE stype_mbew,                  "n450764
                                                             "n450764
-         l_s_mbew_split        TYPE  stype_mbew,            "n450764
-         l_s_mbew_normal       TYPE  stype_mbew,            "n450764
-         l_flag_split(01)      TYPE c.                      "n450764
+         l_s_mbew_split   TYPE stype_mbew,                  "n450764
+         l_s_mbew_normal  TYPE stype_mbew,                  "n450764
+         l_flag_split(01) TYPE c.                           "n450764
                                                             "n450764
 * build Valuation Class restriction table
   IF gv_switch_ehp6ru = abap_true.
@@ -2865,7 +2896,7 @@ FORM aktuelle_bst_bwbst.
 
 * read the matching valuation entries                       "n450764
   PERFORM hdb_check_table USING 'MBEW' ''.                  "n1710850
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT matnr bwkey bwtar lbkum salk3 bwtty  FROM mbew CONNECTION (dbcon) "n1710850
 *         INTO CORRESPONDING FIELDS OF TABLE l_t_mbew        "n450764
 *         WHERE  matnr  IN  matnr                            "n450764
@@ -2874,10 +2905,38 @@ FORM aktuelle_bst_bwbst.
 *           AND  bklas  IN  ibklas.
                                                             "n450764
                                                             "n450764
+
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+  MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_bwkey[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWKEY' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING bwtar[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWTAR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING ibklas[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BKLAS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MBEW_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( dbcon )
+                                                                                                                                                   )->process( IMPORTING et_output = l_t_mbew ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  l_t_mbew.
+  ENDTRY.
+
 * read the matching valuation records of the valuated       "n450764
 * special stock sales order                                 "n450764
   PERFORM hdb_check_table USING 'EBEW' ''.                  "n1710850
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT matnr bwkey bwtar bwtty                            "n1227439
 *         SUM( lbkum ) AS lbkum                              "n450764
 *         SUM( salk3 ) AS salk3        FROM  ebew CONNECTION (dbcon) "n1710850
@@ -2889,10 +2948,22 @@ FORM aktuelle_bst_bwbst.
 *           AND  sobkz <> 'T'                                "SIT
 *         GROUP BY  matnr  bwkey bwtar bwtty.                "n450764
                                                             "n450764
+* same selection criteria applies
+  DATA lt_ebew LIKE l_t_mbew.
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'EBEW_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( dbcon )
+                                                                                                                                                   )->process( IMPORTING et_output = lt_ebew ).
+      APPEND LINES OF lt_ebew TO  l_t_mbew.
+    CATCH zcx_process_mb5b_select.
+  ENDTRY.
+
+
 * read the matching valuation records of the valuated       "n450764
 * special stock projects                                    "n450764
   PERFORM hdb_check_table USING 'QBEW' ''.                  "n1710850
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT matnr bwkey bwtar bwtty                            "n1227439
 *         SUM( lbkum ) AS lbkum                              "n450764
 *         SUM( salk3 ) AS salk3        FROM  qbew CONNECTION (dbcon) "n1710850
@@ -2903,10 +2974,22 @@ FORM aktuelle_bst_bwbst.
 *           AND  bklas  IN  ibklas
 *         GROUP BY  matnr  bwkey bwtar bwtty.                "n450764
 
+* same selection criteria applies
+  DATA lt_qbew LIKE l_t_mbew.
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'QBEW_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( dbcon )
+                                                                                                                                                   )->process( IMPORTING et_output = lt_qbew ).
+      APPEND LINES OF lt_qbew TO  l_t_mbew.
+    CATCH zcx_process_mb5b_select.
+  ENDTRY.
+
+
 * read the matching valuation records of the valuated       "n497992
 * special subcontractor stock OBEW                          "n497992
   PERFORM hdb_check_table USING 'OBEW' ''.                  "n1710850
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT matnr bwkey bwtar bwtty                            "n1227439
 *         SUM( lbkum ) AS lbkum                              "n497992
 *         SUM( salk3 ) AS salk3         FROM  obew CONNECTION (dbcon) "n1710850
@@ -2916,6 +2999,18 @@ FORM aktuelle_bst_bwbst.
 *           AND  bwtar  IN  bwtar                            "n497992
 *           AND  bklas  IN  ibklas
 *         GROUP BY  matnr  bwkey bwtar bwtty.                "n497992
+
+* same selection criteria applies
+  DATA lt_obew LIKE l_t_mbew.
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'OBEW_01'
+                                                                                                                                                 it_select_opt = lt_prop_sel_opt
+                                                                                                                                                 iv_db_connection = CONV #( dbcon )
+                                                                                                                                                   )->process( IMPORTING et_output = lt_obew ).
+      APPEND LINES OF lt_obew TO  l_t_mbew.
+    CATCH zcx_process_mb5b_select.
+  ENDTRY.
+
 
   IF l_t_mbew[] IS INITIAL.                                 "n1560727
     "MESSAGE s289.                                           "n1560727
@@ -2996,7 +3091,7 @@ FORM aktuelle_bst_bwbst.
 
 * no entries left in table g_t_mbew ?
   IF  g_t_mbew[] IS INITIAL.                                "n450764
-   " MESSAGE s289.
+    " MESSAGE s289.
 *     Kein Material in Selektion vorhanden.
     PERFORM anforderungsbild.
   ENDIF.
@@ -3012,8 +3107,8 @@ ENDFORM.                     "aktuelle_bst_bwbst
 FORM  bewegungsarten_lesen.
 
   DATA: BEGIN OF k2 OCCURS 0,
-    bwart LIKE zt156s-bwart,
-  END OF k2.
+          bwart LIKE zt156s-bwart,
+        END OF k2.
   REFRESH k2.
 
 * select the movement types from the selected documents
@@ -3051,9 +3146,32 @@ FORM  bewegungsarten_lesen.
   ENDLOOP.
 
   SORT it156 BY bwart wertu mengu sobkz kzbew kzzug kzvbr.
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT * FROM t156m INTO CORRESPONDING FIELDS OF TABLE it156x
 *           FOR ALL ENTRIES IN it156  WHERE bustm EQ it156-bustm.
+
+
+
+  DATA lt_zt156m TYPE TABLE OF  zt156m.
+  DATA lv_where_cond TYPE string.
+  LOOP AT  it156 ASSIGNING FIELD-SYMBOL(<ls_t156m>).
+    IF lv_where_cond IS INITIAL.
+      lv_where_cond = |bustm = `| && <ls_t156m>-bustm && |`|.
+    ELSE.
+      lv_where_cond = lv_where_cond && | and bustm = `| && <ls_t156m>-bustm && |`|.
+    ENDIF.
+  ENDLOOP.
+
+  NEW zcl_rndic_call_select( )->zif_call_odata_sel_generic~call_generic_select(  EXPORTING iv_field_list = 'BUSTM LBBSA'
+                                                                                                                                                iv_structure_name = 'ZT156M'
+                                                                                                                                                iv_table_name = 'T156M'
+                                                                                                                                                iv_where_clause =  lv_where_cond
+                                                                                                                            IMPORTING et_output = lt_zt156m ).
+
+  MOVE-CORRESPONDING lt_zt156m TO it156x[].
+
+
+
 
   LOOP AT it156.
     CLEAR it156-lbbsa.
@@ -3156,13 +3274,13 @@ FORM summen_bilden.
       IF xchar = ' '.
         SORT imsweg BY werks matnr shkzg.          "auf Materialebene
         LOOP AT imsweg.
-         " ENHANCEMENT-SECTION RM07MLBD_20 SPOTS ES_RM07MLBD .
+          " ENHANCEMENT-SECTION RM07MLBD_20 SPOTS ES_RM07MLBD .
           IF ( imsweg-xauto IS INITIAL ) OR
              ( imsweg-bustm <> 'MA02' AND
                imsweg-bustm <> 'MA05' AND
                imsweg-bustm <> 'MAUO' AND                   "1767021
                imsweg-bustm <> 'MA0L' AND                   "1767021
-               imsweg-bustm <> 'MAVA' AND                       "1831441
+               imsweg-bustm <> 'MAVA' AND                   "1831441
                imsweg-bustm <> '' ).
             MOVE-CORRESPONDING imsweg TO weg_mat.
             COLLECT weg_mat.
@@ -3174,13 +3292,13 @@ FORM summen_bilden.
       ELSEIF xchar = 'X'.
         SORT imsweg BY werks matnr charg shkzg.    "auf Chargenebene
         LOOP AT imsweg.
-      "    ENHANCEMENT-SECTION RM07MLBD_21 SPOTS ES_RM07MLBD .
+          "    ENHANCEMENT-SECTION RM07MLBD_21 SPOTS ES_RM07MLBD .
           IF ( imsweg-xauto IS INITIAL ) OR
              ( imsweg-bustm <> 'MA02' AND
                imsweg-bustm <> 'MA05' AND
                imsweg-bustm <> 'MAUO' AND                   "1767021
-               imsweg-bustm <> 'MA0L' AND                       "1767021
-               imsweg-bustm <> 'MAVA'   ).                      "1831441
+               imsweg-bustm <> 'MA0L' AND                   "1767021
+               imsweg-bustm <> 'MAVA'   ).                  "1831441
             MOVE-CORRESPONDING imsweg TO weg_char.
             COLLECT weg_char.
           ELSE.
@@ -3259,13 +3377,13 @@ FORM summen_bilden.
       SORT  g_t_mseg_lean    BY werks matnr shkzg DESCENDING.
 
       LOOP AT g_t_mseg_lean  INTO  g_s_mseg_lean.
-      "  ENHANCEMENT-SECTION RM07MLBD_22 SPOTS ES_RM07MLBD .
+        "  ENHANCEMENT-SECTION RM07MLBD_22 SPOTS ES_RM07MLBD .
         IF ( g_s_mseg_lean-xauto IS INITIAL ) OR
            ( g_s_mseg_lean-bustm <> 'MA02' AND
              g_s_mseg_lean-bustm <> 'MA05' AND
              g_s_mseg_lean-bustm <> 'MAUO' AND              "1767021
-             G_S_MSEG_LEAN-BUSTM <> 'MA0L' AND                  "1767021
-             G_S_MSEG_LEAN-BUSTM <> 'MAVA'   ).                 "1831441
+             g_s_mseg_lean-bustm <> 'MA0L' AND              "1767021
+             g_s_mseg_lean-bustm <> 'MAVA'   ).             "1831441
           MOVE-CORRESPONDING g_s_mseg_lean   TO  sum_mat.
           COLLECT            sum_mat.
         ELSE.
@@ -3278,13 +3396,13 @@ FORM summen_bilden.
       SORT  g_t_mseg_lean    BY werks matnr charg shkzg DESCENDING.
 
       LOOP AT g_t_mseg_lean  INTO  g_s_mseg_lean.
-      "  ENHANCEMENT-SECTION RM07MLBD_23 SPOTS ES_RM07MLBD .
+        "  ENHANCEMENT-SECTION RM07MLBD_23 SPOTS ES_RM07MLBD .
         IF ( g_s_mseg_lean-xauto IS INITIAL ) OR
            ( g_s_mseg_lean-bustm <> 'MA02' AND
              g_s_mseg_lean-bustm <> 'MA05' AND
              g_s_mseg_lean-bustm <> 'MAUO' AND              "1767021
-             G_S_MSEG_LEAN-BUSTM <> 'MA0L' AND                  "1767021
-             G_S_MSEG_LEAN-BUSTM <> 'MAVA'   ).                 "1831441
+             g_s_mseg_lean-bustm <> 'MA0L' AND              "1767021
+             g_s_mseg_lean-bustm <> 'MAVA'   ).             "1831441
           MOVE-CORRESPONDING  g_s_mseg_lean
                              TO  sum_char.
           COLLECT            sum_char.
@@ -4106,8 +4224,8 @@ FORM f0400_create_fieldcat.
 
 * if the field catalog contains a field with values in currency,
 * add the currency to to field-catalogue
-  DATA : l_cnt_waers_active  TYPE i,                        "n497992
-         l_cnt_waers_total   TYPE i.                        "n497992
+  DATA : l_cnt_waers_active TYPE i,                         "n497992
+         l_cnt_waers_total  TYPE i.                         "n497992
                                                             "n497992
   LOOP AT fieldcat           INTO  g_s_fieldcat.            "n497992
     CHECK : g_s_fieldcat-cfieldname    = 'WAERS'.           "n497992
@@ -4135,9 +4253,9 @@ FORM f0400_create_fieldcat.
     g_s_fieldcat-sp_group      = 'M'.                       "n497992
     PERFORM  f0410_fieldcat    USING  c_take   c_no_out.    "n497992
   ENDIF.                                                    "n497992
- " ENHANCEMENT-POINT RM07MLBD_04 SPOTS ES_RM07MLBD.
+  " ENHANCEMENT-POINT RM07MLBD_04 SPOTS ES_RM07MLBD.
 
-"  ENHANCEMENT-POINT EHP605_RM07MLBD_15 SPOTS ES_RM07MLBD .
+  "  ENHANCEMENT-POINT EHP605_RM07MLBD_15 SPOTS ES_RM07MLBD .
 
 ENDFORM.                     "f0400_create_fieldcat
 
@@ -4149,9 +4267,9 @@ FORM f0410_fieldcat
          USING  l_f_check
                 l_f_no_out   TYPE      slis_fieldcat_main-no_out.
 
-  DATA : l_f_continue(01)    TYPE c,
-         l_f_type(01)        TYPE c,
-         l_f_fieldname       TYPE      stype_fields.
+  DATA : l_f_continue(01) TYPE c,
+         l_f_type(01)     TYPE c,
+         l_f_fieldname    TYPE stype_fields.
 
   FIELD-SYMBOLS : <l_fs>.
 
@@ -4591,12 +4709,12 @@ FORM user_command                                           "#EC CALLED
                              rs_selfield  TYPE  slis_selfield.
 
   TYPES: BEGIN OF ty_s_sel,
-           mblnr LIKE  zmseg-mblnr,
-           mjahr LIKE  zmseg-mjahr,
-           zeile LIKE  zmseg-zeile,
-           bukrs LIKE  zmseg-bukrs,
-           belnr LIKE  zmseg-belnr,
-           gjahr LIKE  zmseg-gjahr,
+           mblnr LIKE zmseg-mblnr,
+           mjahr LIKE zmseg-mjahr,
+           zeile LIKE zmseg-zeile,
+           bukrs LIKE zmseg-bukrs,
+           belnr LIKE zmseg-belnr,
+           gjahr LIKE zmseg-gjahr,
          END OF ty_s_sel,
 
          ty_t_sel TYPE ty_s_sel OCCURS 0.
@@ -4608,7 +4726,7 @@ FORM user_command                                           "#EC CALLED
         ls_fc       TYPE slis_fieldcat_alv,
         lt_fc       TYPE slis_t_fieldcat_alv,
         ls_selfield TYPE slis_selfield,
-        l_fi_doc    TYPE c  LENGTH 1.                       "n1511550
+        l_fi_doc    TYPE c LENGTH 1.                        "n1511550
 
 * Unfortunately the output list of this report consists
 * of several ALVs, one started at the end-event of the other.
@@ -4725,7 +4843,7 @@ FORM user_command                                           "#EC CALLED
         SET PARAMETER ID 'BLN' FIELD ls_sel-belnr.
         SET PARAMETER ID 'BUK' FIELD ls_sel-bukrs.
         SET PARAMETER ID 'GJR' FIELD ls_sel-gjahr.
-        ZCL_TODO_LIST=>ivan( ).
+        zcl_todo_list=>ivan( ).
 *        CALL TRANSACTION 'FB03'               "#EC CI_CALLTA  "n1511550
 *                             AND SKIP FIRST SCREEN.         "n1511550
       ENDIF.
@@ -4909,7 +5027,7 @@ FORM check_is_oil_system.                                   "n599218 A
   CLEAR : g_flag_is_oil_active, g_cnt_is_oil.               "n599218 A
                                                             "n599218 A
 * does database OI001 exist in this system ?                "n599218 A
-   zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'DDIF_NAMETAB_GET'                         "n599218 A
 *    EXPORTING                                               "n599218 A
 *      tabname   = g_f_dcobjdef_name                 "n599218 A
@@ -4923,7 +5041,7 @@ FORM check_is_oil_system.                                   "n599218 A
 * check definition of MM document item MSEG                 "n599218 A
   MOVE  'MSEG'               TO  g_f_dcobjdef_name.         "n599218 A
                                                             "n599218 A
-                                                               zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'DDIF_NAMETAB_GET'                          "n599218 A
 *    EXPORTING                                               "n599218 A
 *      tabname   = g_f_dcobjdef_name                 "n599218 A
@@ -5018,7 +5136,7 @@ FORM calculate_offsets.
   g_offset_value             =  g_offset_unit  +  8.
   g_offset_curr              =  g_offset_value + 25.
 
- " ENHANCEMENT-POINT EHP605_RM07MLBD_19 SPOTS ES_RM07MLBD .
+  " ENHANCEMENT-POINT EHP605_RM07MLBD_19 SPOTS ES_RM07MLBD .
 
 ENDFORM.                     " calculate_offsets.
 
@@ -5040,9 +5158,9 @@ ENDFORM.                     " get_max_text_length
 *
 * contains FORM routines without preprocessor commands and  "n547170
 * no text elements                                          "n547170
-INCLUDE                      zrndic_rm07mlbd_form_01.              "n547170
+INCLUDE                      zrndic_rm07mlbd_form_01.       "n547170
 
-INCLUDE                      zrndic_rm07mlbd_form_02.              "n547170
+INCLUDE                      zrndic_rm07mlbd_form_02.       "n547170
 
 *----------------------------------------------------------------------*
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR pa_aistr.          "n1481757
@@ -5105,7 +5223,7 @@ FORM new_db_run .
 
   REFRESH datum.  "delete existing entries because ...
   APPEND datum.   ".. relevant data is appended here
-     zcl_todo_list=>ivan( ).
+  zcl_todo_list=>ivan( ).
   TRY.
 *      CALL BADI gr_badi_rm07mlbd_dbsys_opt->calculate_stocks
 *        EXPORTING

@@ -48,15 +48,15 @@
 * definition of the interface table for the transposrt      "n1481757
 * of the select-option for archive access                   "n1481757
 TYPES : BEGIN OF ty_frange,                                 "n1481757
-          fieldname         TYPE  fieldname,                "n1481757
-          selopt_t          TYPE STANDARD TABLE OF          "n1481757
-                            rsdsselopt                      "n1481757
-                            WITH DEFAULT KEY,               "n1481757
+          fieldname TYPE fieldname,                         "n1481757
+          selopt_t  TYPE STANDARD TABLE OF                  "n1481757
+                    rsdsselopt                              "n1481757
+                    WITH DEFAULT KEY,                       "n1481757
         END OF ty_frange.                                   "n1481757
                                                             "n1481757
 DATA: g_s_selopt TYPE rsdsselopt,                           "n1481757
       g_s_frange TYPE ty_frange,                            "n1481757
-      g_t_frange TYPE  TABLE OF  ty_frange.                 "n1481757
+      g_t_frange TYPE TABLE OF ty_frange.                   "n1481757
                                                             "n1481757
 DATA: g_t_selrange LIKE g_t_frange,                         "n1481757
       g_s_selrange LIKE g_s_frange.                         "n1481757
@@ -66,63 +66,63 @@ TYPES : stab_frange         TYPE STANDARD TABLE OF          "n1481757
 
 **  table with the index key for reading the AS archiv      "n1481757
 TYPES: BEGIN OF stype_as_key,                               "n1481757
-         archivekey          LIKE  zmkpf_aridx-arkey,        "n1481757
-         archiveofs          LIKE  zmkpf_aridx-archoffset,   "n1481757
-         mblnr               LIKE  zmkpf-mblnr,              "n1481757
-         mjahr               LIKE  zmkpf-mjahr,              "n1481757
+         archivekey LIKE zmkpf_aridx-arkey,                 "n1481757
+         archiveofs LIKE zmkpf_aridx-archoffset,            "n1481757
+         mblnr      LIKE zmkpf-mblnr,                       "n1481757
+         mjahr      LIKE zmkpf-mjahr,                       "n1481757
        END OF stype_as_key,                                 "n1481757
                                                             "n1481757
-       stab_as_key           TYPE STANDARD TABLE OF         "n1481757
-                             stype_as_key                   "n1481757
-                             WITH DEFAULT KEY.              "n1481757
+       stab_as_key TYPE STANDARD TABLE OF                   "n1481757
+stype_as_key                                                "n1481757
+WITH DEFAULT KEY.                                           "n1481757
 
-DATA : g_t_as_key            TYPE  stab_as_key,             "n1481757
-       g_s_as_key            TYPE  stype_as_key.            "n1481757
+DATA : g_t_as_key TYPE stab_as_key,                         "n1481757
+       g_s_as_key TYPE stype_as_key.                        "n1481757
 
 DATA: g_f_afcat             LIKE  aind_str1-skey.           "n1481757
 
 * data definitions for AS archive                           "n1481757
 TYPES: BEGIN OF stype_aind_str1,                            "n1481757
-         archindex           LIKE  aind_str1-archindex,     "n1481757
-         itype               LIKE  aind_str1-itype,         "n1481757
-         skey                LIKE  aind_str1-skey,          "n1481757
+         archindex LIKE aind_str1-archindex,                "n1481757
+         itype     LIKE aind_str1-itype,                    "n1481757
+         skey      LIKE aind_str1-skey,                     "n1481757
        END OF stype_aind_str1,                              "n1481757
                                                             "n1481757
-       stab_aind_str1        TYPE STANDARD TABLE OF         "n1481757
-                             stype_aind_str1                "n1481757
-                             WITH DEFAULT KEY.              "n1481757
+       stab_aind_str1 TYPE STANDARD TABLE OF                "n1481757
+stype_aind_str1                                             "n1481757
+WITH DEFAULT KEY.                                           "n1481757
                                                             "n1481757
-DATA : g_s_aind_str1_fc      TYPE  stype_aind_str1,         "n1481757
-       g_t_aind_str1_fc      TYPE  stab_aind_str1,          "n1481757
-       g_s_aind_str1_ais     TYPE  stype_aind_str1,         "n1481757
-       g_t_aind_str1_ais     TYPE  stab_aind_str1.          "n1481757
+DATA : g_s_aind_str1_fc  TYPE stype_aind_str1,              "n1481757
+       g_t_aind_str1_fc  TYPE stab_aind_str1,               "n1481757
+       g_s_aind_str1_ais TYPE stype_aind_str1,              "n1481757
+       g_t_aind_str1_ais TYPE stab_aind_str1.               "n1481757
 
 * working tables with header lines for MM doc MKPF and MSEG "n1481757
 DATA : BEGIN OF xmkpf        OCCURS 0.                      "n1481757
-        INCLUDE STRUCTURE   zmkpf.                           "n1481757
+        INCLUDE STRUCTURE   zmkpf.                          "n1481757
 DATA : END OF xmkpf.                                        "n1481757
                                                             "n1481757
 DATA : BEGIN OF xmseg        OCCURS 0.                      "n1481757
-        INCLUDE STRUCTURE   zmseg.                           "n1481757
+        INCLUDE STRUCTURE   zmseg.                          "n1481757
 DATA : END OF xmseg.                                        "n1481757
                                                             "n1481757
 
 * hash-table for tied empties                               "n1481757
                                                             "n1481757
 TYPES: BEGIN OF ts_mmdocs_arch,                             "n1481757
-  mblnr LIKE zmkpf-mblnr,                                    "n1481757
-  mjahr LIKE zmkpf-mjahr,                                    "n1481757
-  archivekey LIKE zmkpf_aridx-arkey,                         "n1481757
-  offset LIKE zmkpf_aridx-archoffset,                        "n1481757
+         mblnr      LIKE zmkpf-mblnr,                       "n1481757
+         mjahr      LIKE zmkpf-mjahr,                       "n1481757
+         archivekey LIKE zmkpf_aridx-arkey,                 "n1481757
+         offset     LIKE zmkpf_aridx-archoffset,            "n1481757
        END OF ts_mmdocs_arch.                               "n1481757
                                                             "n1481757
 DATA: ht_mmdocs_arch TYPE HASHED TABLE OF ts_mmdocs_arch    "n1481757
                      WITH UNIQUE KEY mblnr mjahr,
-      wa_hashtable LIKE LINE OF ht_mmdocs_arch.             "n1481757
+      wa_hashtable   LIKE LINE OF ht_mmdocs_arch.           "n1481757
 
-data: gt_ra_xauto TYPE RANGE OF xauto.
+DATA: gt_ra_xauto TYPE RANGE OF xauto.
 
-DATA:  g_t_mseg_key_te       type  stab_mseg_xauto.
+DATA:  g_t_mseg_key_te       TYPE  stab_mseg_xauto.
 
 
 *---- end of note 1481757 ---------------------------------------------*
@@ -131,7 +131,7 @@ DATA:  g_t_mseg_key_te       type  stab_mseg_xauto.
 *&      Form  PF_STATUS_SET
 *&---------------------------------------------------------------------*
 
-FORM status                                    "#EC CALLED  "n1511550
+FORM status                                      "#EC CALLED  "n1511550
   USING  extab               TYPE slis_t_extab.             "n1511550
 
   DATA : l_s_extab           TYPE      slis_extab.
@@ -156,10 +156,10 @@ FORM status                                    "#EC CALLED  "n1511550
   ENDIF.                                                    "n890109
 
 * filter is no more supported by the ALV                    "1509405
-  if G_F_CNT_LINES GT 1.                                    "1509405
-     MOVE  : '&ILT'           TO  L_S_EXTAB-FCODE. "Filter  "1509405
-     APPEND  L_S_EXTAB        TO  EXTAB.                    "1509405
-  endif.                                                    "1509405
+  IF g_f_cnt_lines GT 1.                                    "1509405
+    MOVE  : '&ILT'           TO  l_s_extab-fcode. "Filter  "1509405
+    APPEND  l_s_extab        TO  extab.                     "1509405
+  ENDIF.                                                    "1509405
 
   SET PF-STATUS 'STANDARD'   EXCLUDING extab.
 
@@ -233,8 +233,8 @@ FORM listumfang.
                bestand-endwert   IS INITIAL.                "n599218
 *         stock and value on end date are zero              "n599218
           MOVE  'PA_WDWIZ'   TO  l_category.                "n599218
- ELSEIF bestand-endmenge = bestand-anfmenge  AND            "n599218
-               bestand-anfwert  = bestand-endwert.          "n599218
+        ELSEIF bestand-endmenge = bestand-anfmenge  AND     "n599218
+                      bestand-anfwert  = bestand-endwert.   "n599218
 *         stock and value on end date are equal             "n599218
           MOVE  'PA_WDWEW'   TO  l_category.                "n599218
         ELSE.                                               "n599218
@@ -244,7 +244,7 @@ FORM listumfang.
       ENDIF.                                                "n599218
     ENDIF.                                                  "n599218
 
-"ENHANCEMENT-POINT EHP605_RM07MLBD_FORM_02_01 SPOTS ES_RM07MLBD .
+    "ENHANCEMENT-POINT EHP605_RM07MLBD_FORM_02_01 SPOTS ES_RM07MLBD .
 *LOG-POINT ID /cwm/enh SUBKEY to_upper( sy-tcode && '\/CWM/APPL_MM_RM07MLBD\EHP605_RM07MLBD_FORM_02_01\' && sy-cprog ) FIELDS /cwm/cl_enh_layer=>get_field( ).
 *IF /cwm/cl_switch_check=>ehp5( ) = /cwm/cl_switch_check=>true.
 *** Carry out the check for CW Materials
@@ -339,42 +339,42 @@ FORM listausgabe1.
   APPEND event_exit.
 
   IF  g_flag_break-b8 = 'X'.                                "n921164
-   " BREAK-POINT              ID mmim_rep_mb5b.              "n921164
+    " BREAK-POINT              ID mmim_rep_mb5b.              "n921164
 *   dynamic break-point : check input data for list viewer  "n921164
   ENDIF.                                                    "n921164
 
   CALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'
-       EXPORTING
-            i_interface_check        = g_flag_i_check       "n599218
-            i_callback_program       = repid
-            i_callback_pf_status_set = 'STATUS'
-            i_callback_user_command  = 'USER_COMMAND'
-*           I_STRUCTURE_NAME         =
-            is_layout                = layout
-            it_fieldcat              = fieldcat[]
-*           IT_EXCLUDING             =
-            it_special_groups        = gruppen[]
-            it_sort                  = sorttab[]
-            it_filter                = filttab[]
-*           IS_SEL_HIDE              =
-            i_default                = 'X'
-            i_save                   = 'A'
-            is_variant               = variante
-            it_events                = events[]
-            it_event_exit            = event_exit[]
-            is_print                 = g_s_print
-*           I_SCREEN_START_COLUMN    = 0
-*           I_SCREEN_START_LINE      = 0
-*           I_SCREEN_END_COLUMN      = 0
-*           I_SCREEN_END_LINE        = 0
+    EXPORTING
+      i_interface_check        = g_flag_i_check       "n599218
+      i_callback_program       = repid
+      i_callback_pf_status_set = 'STATUS'
+      i_callback_user_command  = 'USER_COMMAND'
+*     I_STRUCTURE_NAME         =
+      is_layout                = layout
+      it_fieldcat              = fieldcat[]
+*     IT_EXCLUDING             =
+      it_special_groups        = gruppen[]
+      it_sort                  = sorttab[]
+      it_filter                = filttab[]
+*     IS_SEL_HIDE              =
+      i_default                = 'X'
+      i_save                   = 'A'
+      is_variant               = variante
+      it_events                = events[]
+      it_event_exit            = event_exit[]
+      is_print                 = g_s_print
+*     I_SCREEN_START_COLUMN    = 0
+*     I_SCREEN_START_LINE      = 0
+*     I_SCREEN_END_COLUMN      = 0
+*     I_SCREEN_END_LINE        = 0
 *      IMPORTING
-*           e_exit_caused_by_caller  = 'X'
-*           es_exit_caused_by_user   = 'X'
-       TABLES
-            t_outtab                 = g_t_belege1
-       EXCEPTIONS
-*           program_error            = 1
-            OTHERS                   = 2.
+*     e_exit_caused_by_caller  = 'X'
+*     es_exit_caused_by_user   = 'X'
+    TABLES
+      t_outtab                 = g_t_belege1
+    EXCEPTIONS
+*     program_error            = 1
+      OTHERS                   = 2.
 
 * does the ALV return with an error ?
   IF  NOT sy-subrc IS INITIAL.         "Fehler vom ALV ?
@@ -408,26 +408,48 @@ FORM f0000_create_table_g_t_organ
 * selected items..                                         "n1049935
 
 * select all plant from table t001w
-  zcl_todo_list=>replace_select( ).
- " SELECT * FROM t001w        WHERE  werks  IN  g_0000_ra_werks.
+*  zcl_todo_list=>replace_select( ).
+  " SELECT * FROM t001w        WHERE  werks  IN  g_0000_ra_werks.
 
-*   check the valuation area
-    "CHECK : t001w-bwkey IN g_0000_ra_bwkey.
 
-*   read the valuation area
-zcl_todo_list=>replace_select( ).
-*    SELECT SINGLE * FROM t001k
-*                             WHERE  bwkey  =  t001w-bwkey.
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+  DATA lt_t001w_all TYPE TABLE OF stype_work.
 
-    CHECK : sy-subrc IS INITIAL.       "entry found ?
 
+  MOVE-CORRESPONDING g_0000_ra_werks[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T001W_01'
+                                                                                                       it_select_opt = lt_prop_sel_opt
+                                                                                                       iv_db_connection = CONV #( '' )
+                                                                               )->process( IMPORTING et_output = lt_t001w_all ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  lt_t001w_all.
+  ENDTRY.
+
+  LOOP AT lt_t001w_all  INTO zt001w.
 *   company code is required ?
-    "CHECK : t001k-bukrs IN g_0000_ra_bukrs.
+    CHECK : zt001k-bukrs IN g_0000_ra_bukrs.
 
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT SINGLE * FROM t001  WHERE  bukrs  =  t001k-bukrs.
 
-    CHECK : sy-subrc IS INITIAL.       "entry found ?
+    DATA ls_zt001 TYPE zt001.
+    DATA(lv_where_cond) = |BUKRS = `| && zt001k-bukrs && |`|.
+    NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'BUKRS BUTXT ORT01 LAND1 WAERS KTOPL'
+                                                                                                                                                  iv_structure_name = 'ZT001'
+                                                                                                                                                  iv_table_name = 'T001'
+                                                                                                                                                  iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                              IMPORTING es_output = ls_zt001 ).
+
+
+    "CHECK : sy-subrc IS INITIAL.       "entry found ?
+    CHECK ls_zt001 IS NOT INITIAL.
+    CLEAR zt001.
+    MOVE-CORRESPONDING ls_zt001 TO zt001.
 
 
     PERFORM  f9000_auth_plant_check    USING  zt001w-werks.
@@ -469,7 +491,15 @@ zcl_todo_list=>replace_select( ).
            'I'               TO  g_ra_bwkey-sign,
            'EQ'              TO  g_ra_bwkey-option.
     APPEND                   g_ra_bwkey.
-  "ENDSELECT.
+
+
+    "ENDSELECT.
+  ENDLOOP.
+
+
+
+
+
 
 * is table g_t_organ empty ?
   IF  g_t_organ[] IS INITIAL.                               "n433765
@@ -521,13 +551,13 @@ FORM f0300_get_fields.
   ENDLOOP.
                                                             "n1784874
                                                             "n599218 A
-  if  g_flag_is_oil_active = 'X'.           "IS-OIL ?       "n599218 A
+  IF  g_flag_is_oil_active = 'X'.           "IS-OIL ?       "n599218 A
 *   the 2 IS-OIL specific data fields will be inserted into "n599218 A
 *   working table G_T_MSEG_FIELDS. Then these fields will   "n599218 A
 *   transported from database table MSEG, too               "n599218 A
-    append  'MSEG~OIGLCALC'  TO  G_T_MSEG_FIELDS.           "n599218 A
-    append  'MSEG~OIGLSKU'   TO  G_T_MSEG_FIELDS.           "n599218 A
-  endif.                                                    "n599218 A
+    APPEND  'MSEG~OIGLCALC'  TO  g_t_mseg_fields.           "n599218 A
+    APPEND  'MSEG~OIGLSKU'   TO  g_t_mseg_fields.           "n599218 A
+  ENDIF.                                                    "n599218 A
                                                             "n1784874
 
 * serious error if table g_t_mseg_field does not contain fields
@@ -658,9 +688,9 @@ ENDFORM.                     "f0700_prepare_tied_empties.   "n547170
 *----------------------------------------------------------------------*
 FORM f0800_check_restrictions.                              "n547170
                                                             "n547170
-  data : l_flag_m7390(01)    type c,
-         l_flag_m7482(01)    type c,
-         lv_dummy            type string.                   "n1481757
+  DATA : l_flag_m7390(01) TYPE c,
+         l_flag_m7482(01) TYPE c,
+         lv_dummy         TYPE string.                      "n1481757
 
 * - if FI summarization is active process warning M7 390    "n497992
 *   for stock type = valuated stock                         "n497992
@@ -668,7 +698,7 @@ FORM f0800_check_restrictions.                              "n547170
 
     IF archive = 'X'.                                       "n1481757
 *       emerge warning ?                                    "n1481757
-           zcl_todo_list=>replace_fm( ).
+      zcl_todo_list=>replace_fm( ).
 *           CALL FUNCTION 'ME_CHECK_T160M'                   "n1481757
 *            EXPORTING                                       "n1481757
 *              I_ARBGB          = 'M7'                       "n1481757
@@ -681,37 +711,37 @@ FORM f0800_check_restrictions.                              "n547170
 *               POPUP            = 5                         "n1481757
 *               INFORMATION      = 6.                        "n1481757
                                                             "n1481757
-           CASE sy-SUBRC.                                   "n1481757
-            WHEN 1.                                         "n1481757
-             " MESSAGE e449.                                 "n1481757
+      CASE sy-subrc.                                        "n1481757
+        WHEN 1.                                             "n1481757
+          " MESSAGE e449.                                 "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-            WHEN 2.                                         "n1481757
-              "MESSAGE w449 into lv_dummy.                   "n1481757
+        WHEN 2.                                             "n1481757
+          "MESSAGE w449 into lv_dummy.                   "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-            WHEN 3.                                         "n1481757
-             " MESSAGE w449.                                 "n1481757
+        WHEN 3.                                             "n1481757
+          " MESSAGE w449.                                 "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-            WHEN 4.                                         "n1481757
-             " MESSAGE s449.                                 "n1481757
+        WHEN 4.                                             "n1481757
+          " MESSAGE s449.                                 "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-            WHEN 5.                                         "n1481757
-              "MESSAGE i449.                                 "n1481757
+        WHEN 5.                                             "n1481757
+          "MESSAGE i449.                                 "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-            WHEN 6.                                         "n1481757
-              "MESSAGE i449.                                 "n1481757
+        WHEN 6.                                             "n1481757
+          "MESSAGE i449.                                 "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-            WHEN OTHERS.                                    "n1481757
-              "MESSAGE w449.                                 "n1481757
+        WHEN OTHERS.                                        "n1481757
+          "MESSAGE w449.                                 "n1481757
 *             MESSAGE w895 WITH text-138.                   "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
 * zu Fehlern führen                                         "n1481757
-           ENDCASE.                                         "n1481757
+      ENDCASE.                                              "n1481757
     ENDIF.                                                  "n1481757
 
     "BREAK-POINT                ID mmim_rep_mb5b.            "n921164
@@ -735,33 +765,56 @@ FORM f0800_check_restrictions.                              "n547170
     MOVE   'PRCHG'           TO  g_ra_awtyp-low.            "n497992
     APPEND                   g_ra_awtyp.                    "n497992
                                                             "n497992
-     zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT * FROM ttypv                                     "n497992
 *      WHERE awtyp  IN g_ra_awtyp                            "n497992
 *      AND   tabname NE 'BSET'.                              "n1785687
-*                                                            "n1278202
-*      IF ttypv-awtyp = 'MKPF'.                              "n1278202
-**       any entry from AWTYP = MKPF could lead to wrong     "n1278202
-**       results -> send message                             "n1278202
-*        MOVE  'X'         TO  l_flag_m7390.                 "n1278202
-*        EXIT.                                               "n1278202
-*      ENDIF.                                                "n1278202
-*                                                            "n497992
-*      IF ttypv-fieldname = '*'      OR                      "n497992
-*         ttypv-fieldname = 'MATNR'.                         "n497992
-**       avoid error reported by the code inspector : to
-**       emerge this message during this SELECT - ENDSELECT
-**       loop will create a problem for the database cursor
-*        MOVE  'X'         TO  l_flag_m7390.
-*        EXIT.                                               "n497992
-*      ENDIF.                                                "n497992
+
+    DATA lt_ttypv TYPE TABLE OF zttypv.
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+    MOVE-CORRESPONDING   g_ra_awtyp[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'AWYP' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'TTYPV_01'
+                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                         iv_db_connection = CONV #( '' )
+                                                                                 )->process( IMPORTING et_output = lt_ttypv ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  lt_ttypv.
+    ENDTRY.
+
+
+    LOOP AT lt_ttypv ASSIGNING FIELD-SYMBOL(<ls_ttypv>).
+                                                            "n1278202
+      IF <ls_ttypv>-awtyp = 'MKPF'.                              "n1278202
+*       any entry from AWTYP = MKPF could lead to wrong     "n1278202
+*       results -> send message                             "n1278202
+        MOVE  'X'         TO  l_flag_m7390.                 "n1278202
+        EXIT.                                               "n1278202
+      ENDIF.                                                "n1278202
+                                                            "n497992
+      IF <ls_ttypv>-fieldname = '*'      OR                      "n497992
+         <ls_ttypv>-fieldname = 'MATNR'.                         "n497992
+*       avoid error reported by the code inspector : to
+*       emerge this message during this SELECT - ENDSELECT
+*       loop will create a problem for the database cursor
+        MOVE  'X'         TO  l_flag_m7390.
+        EXIT.                                               "n497992
+      ENDIF.                                                "n497992
 *    ENDSELECT.                                              "n497992
+    ENDLOOP.
+
 
 *   emerge message after this SELECT - ENDSELECT loop if
 *   an error was detected
     IF  l_flag_m7390 = 'X'.
 *       emerge warning ?                                    "n497992
-        zcl_todo_list=>replace_fm( ).
+      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'ME_CHECK_T160M'                        "n497992
 *        EXPORTING                                           "n497992
 *          i_arbgb          = 'M7'                           "n497992
@@ -772,7 +825,7 @@ FORM f0800_check_restrictions.                              "n547170
                                                             "n497992
       IF sy-subrc <> 0.                                     "n497992
 *         FI summarization active / results could be wrong  "n497992
-       " MESSAGE            w390.                            "n497992
+        " MESSAGE            w390.                            "n497992
       ENDIF.                                                "n497992
     ENDIF.
   ENDIF.                                                    "n497992
@@ -781,7 +834,7 @@ FORM f0800_check_restrictions.                              "n547170
 *   warning M7 391                                          "n497992
   IF NOT bwart[] IS INITIAL.                                "n497992
 *   emerge warning ?                                        "n497992
-     zcl_todo_list=>replace_fm( ).
+    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION            'ME_CHECK_T160M'               "n497992
 *          EXPORTING                                         "n497992
 *            i_arbgb          = 'M7'                         "n497992
@@ -793,7 +846,7 @@ FORM f0800_check_restrictions.                              "n547170
     IF sy-subrc <> 0.                                       "n497992
       SET CURSOR             FIELD  'BWART_LOW'.            "n497992
 *     to restric the mov.type could cause wrong results     "n497992
-     " MESSAGE                w391.                          "n497992
+      " MESSAGE                w391.                          "n497992
     ENDIF.                                                  "n497992
   ENDIF.                                                    "n497992
 
@@ -814,34 +867,34 @@ FORM f0800_check_restrictions.                              "n547170
 
 * - send warning M7 482 when user wants to restrict
 *   G/L account together with material, etc.
-  IF gv_switch_ehp6ru = abap_true and HKONT[] IS NOT INITIAL.
+  IF gv_switch_ehp6ru = abap_true AND hkont[] IS NOT INITIAL.
 
-    if not MATNR[] is initial.
-      move 'X' to l_flag_m7482.
-      set cursor field 'MATNR-LOW'.
+    IF NOT matnr[] IS INITIAL.
+      MOVE 'X' TO l_flag_m7482.
+      SET CURSOR FIELD 'MATNR-LOW'.
 
-    elseif not WERKS[] is initial.
-      move 'X' to l_flag_m7482.
-      set cursor field 'WERKS-LOW'.
+    ELSEIF NOT werks[] IS INITIAL.
+      MOVE 'X' TO l_flag_m7482.
+      SET CURSOR FIELD 'WERKS-LOW'.
 
-    elseif not BWTAR[] is initial.
-      move 'X' to l_flag_m7482.
-      set cursor field 'BWTAR-LOW'.
-    endif.
+    ELSEIF NOT bwtar[] IS INITIAL.
+      MOVE 'X' TO l_flag_m7482.
+      SET CURSOR FIELD 'BWTAR-LOW'.
+    ENDIF.
 
-    if l_flag_m7482 = 'X'.
+    IF l_flag_m7482 = 'X'.
 *     emerge warning ?
       CALL FUNCTION 'ME_CHECK_T160M'
         EXPORTING
-          I_ARBGB          = 'M7'
-          I_MSGNR          = '482'
+          i_arbgb = 'M7'
+          i_msgnr = '482'
         EXCEPTIONS
-          NOTHING          = 0
-          OTHERS           = 1.
-      IF SY-SUBRC <> 0.
-      "  MESSAGE w482.
+          nothing = 0
+          OTHERS  = 1.
+      IF sy-subrc <> 0.
+        "  MESSAGE w482.
       ENDIF.
-    endif.
+    ENDIF.
   ENDIF.
 
 * check the indicators for the scope of list categories     "n599218
@@ -915,14 +968,56 @@ FORM f1000_select_mseg_mkpf.
 * dynamic break-point : before the main SELECT command      "n921164
                                                             "n921165
 
+* following select uses same conditions so declare it here
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+  LOOP AT g_t_mseg_fields ASSIGNING FIELD-SYMBOL(<ls_mseg_fields>).
+    INSERT VALUE #( low = <ls_mseg_fields>-fieldname ) INTO TABLE lt_sel_opt.
+  ENDLOOP.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'MSEG_FIELDS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_werks[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_lgort[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'LGORT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING charg[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'CHARG' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING bwtar[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWTAR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING bwart[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWART' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  INSERT VALUE #( low = datum-low ) INTO TABLE lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BUDAT' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  MOVE-CORRESPONDING g_ra_sobkz[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'SOBKZ' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+
 * was the MSEG conversion done? then choose new logic       "n1558298
- IF g_f_msegex_act is initial.                              "n1558298
+  IF g_f_msegex_act IS INITIAL.                             "n1558298
 * what kind of database access does the user choose ?
-  IF      pa_dbstd = 'X'.
+    IF      pa_dbstd = 'X'.
 *   standard access, the database optimizer looks for the
 *   access path
-    PERFORM hdb_check_table USING 'MKPF' 'MSEG'.            "n1710850
-    zcl_todo_list=>replace_select( ).
+      PERFORM hdb_check_table USING 'MKPF' 'MSEG'.          "n1710850
+*      zcl_todo_list=>replace_select( ).
 *    SELECT (g_t_mseg_fields)
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_mseg_lean
 *         FROM mkpf AS mkpf  JOIN mseg AS mseg
@@ -942,10 +1037,22 @@ FORM f1000_select_mseg_mkpf.
 *    DB2    '&SUBSTITUTE VALUES&'
 *    ORACLE '&SUBSTITUTE VALUES&'.
 
-  ELSEIF  pa_dbmat = 'X'.
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKPF_01'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = g_t_mseg_lean ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  g_t_mseg_lean.
+      ENDTRY.
+
+
+
+    ELSEIF  pa_dbmat = 'X'.
 *   database access via material number and MSEG MM doc items
-    PERFORM hdb_check_table USING 'MKPF' 'MSEG'.            "n1710850
-    zcl_todo_list=>replace_select( ).
+      PERFORM hdb_check_table USING 'MKPF' 'MSEG'.          "n1710850
+*      zcl_todo_list=>replace_select( ).
 *    SELECT (g_t_mseg_fields)
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_mseg_lean
 *         FROM mseg AS mseg  JOIN mkpf AS mkpf
@@ -968,10 +1075,20 @@ FORM f1000_select_mseg_mkpf.
 *    DB6 '<NLJOIN><IXSCAN TABLE=''MSEG'' SAP_INDEX=''M''/>'
 *    DB6 '<IXSCAN TABLE=''MKPF'' SAP_INDEX=''0''/></NLJOIN>'.
 
-  ELSEIF  pa_dbdat = 'X'.
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKPF_02'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = g_t_mseg_lean ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  g_t_mseg_lean.
+      ENDTRY.
+
+
+    ELSEIF  pa_dbdat = 'X'.
 *   database access via posting date and MKPF MM doc headers
-    PERFORM hdb_check_table USING 'MKPF' 'MSEG'.            "n1710850
-    zcl_todo_list=>replace_select( ).
+      PERFORM hdb_check_table USING 'MKPF' 'MSEG'.          "n1710850
+*      zcl_todo_list=>replace_select( ).
 *    SELECT (g_t_mseg_fields)
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_mseg_lean
 *         FROM mkpf AS mkpf  JOIN mseg AS mseg
@@ -993,18 +1110,28 @@ FORM f1000_select_mseg_mkpf.
 *    MSSQLNT  'OPTION FORCE ORDER'                           "n921165
 *    DB6 '<NLJOIN><IXSCAN TABLE=''MKPF'' SAP_INDEX=''BUD''/>'
 *    DB6 '<IXSCAN TABLE=''MSEG'' SAP_INDEX=''0''/></NLJOIN>'.
-  ELSE.
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKPF_03'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = g_t_mseg_lean ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  g_t_mseg_lean.
+      ENDTRY.
+
+    ELSE.
 *   not allowed
-    MOVE  1                  TO  sy-subrc.                  "n921165
-  ENDIF.                                                    "n921165
+      MOVE  1                  TO  sy-subrc.                "n921165
+    ENDIF.                                                  "n921165
 *--- end of note 921165 ------------------------------------"n921165
 
- ELSE.                                                      "n1558298
+  ELSE.                                                     "n1558298
 * MSEG conversion was done - use new logic via MSEG-BUDAT   "n1558298
-  IF g_f_msegex_act = 'H'.                                  "n1558298
+    IF g_f_msegex_act = 'H'.                                "n1558298
 *   use hints - this can maybe removed in a later stage     "n1558298
-    PERFORM hdb_check_table USING 'MKPF' 'MSEG'.            "n1710850
-    zcl_todo_list=>replace_select( ).
+      PERFORM hdb_check_table USING 'MKPF' 'MSEG'.          "n1710850
+*      zcl_todo_list=>replace_select( ).
 *    SELECT (G_T_MSEG_FIELDS)                                "n1558298
 *         INTO CORRESPONDING FIELDS OF TABLE G_T_MSEG_LEAN   "n1558298
 *         FROM MKPF AS MKPF  JOIN MSEG AS MSEG               "n1558298
@@ -1023,9 +1150,20 @@ FORM f1000_select_mseg_mkpf.
 *    %_HINTS                                   "#EC CI_HINTS "n1558298
 *    DB2    '&SUBSTITUTE VALUES&'                            "n1558298
 *    ORACLE '&SUBSTITUTE VALUES&'.                           "n1558298
-  ELSE.                                                     "n1558298
-        PERFORM hdb_check_table USING 'MKPF' 'MSEG'.        "n1710850
-        zcl_todo_list=>replace_select( ).
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKPF_04'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = g_t_mseg_lean ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  g_t_mseg_lean.
+      ENDTRY.
+
+
+    ELSE.                                                   "n1558298
+      PERFORM hdb_check_table USING 'MKPF' 'MSEG'.          "n1710850
+*      zcl_todo_list=>replace_select( ).
 *        SELECT (G_T_MSEG_FIELDS)                            "n1558298
 *         INTO CORRESPONDING FIELDS OF TABLE G_T_MSEG_LEAN   "n1558298
 *         FROM MKPF AS MKPF  JOIN MSEG AS MSEG               "n1558298
@@ -1041,8 +1179,18 @@ FORM f1000_select_mseg_mkpf.
 *           AND MSEG~BWART       IN  BWART                   "n1558298
 *           AND MSEG~BUDAT_MKPF  GE  DATUM-LOW               "n1558298
 *           AND MSEG~SOBKZ       IN  G_RA_SOBKZ.             "n1558298
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MKPF_05'
+                                                                                                                                                     it_select_opt = lt_prop_sel_opt
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = g_t_mseg_lean ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  g_t_mseg_lean.
+      ENDTRY.
+
+    ENDIF.                                                  "n1558298
   ENDIF.                                                    "n1558298
- ENDIF.                                                     "n1558298
 *--- begin of note 1481757 ---------------------------------"n1481757
   IF archive = 'X'.                                         "n1481757
     IF pa_aistr IS NOT INITIAL.                             "n1481757
@@ -1059,7 +1207,7 @@ FORM f1000_select_mseg_mkpf.
   ENDIF.
 
   DATA: lt_imchb_tmp LIKE imchb OCCURS 0,                   "838360
-        ls_imchb LIKE imchb.                                "838360
+        ls_imchb     LIKE imchb.                            "838360
 
 * check whether the found MM doc items contain retail and
 * and beverage specific values
@@ -1189,20 +1337,20 @@ FORM f1000_select_mseg_mkpf.
     IF  NOT g_t_mseg_key[] IS INITIAL.                      "n1481757
                                                             "n1481757
       IF  archive = 'X'.                                    "n1481757
-         PERFORM  fill_table_g_t_mseg_or                    "n1481757
-                       USING    ht_mmdocs_arch              "n1481757
-                       CHANGING g_t_mseg_key                "n1481757
-                                g_t_mseg_or.                 "n1481757
-                               " g_ra_xauto.                 "n1481757
-      endif.                                                "n1481757
+        PERFORM  fill_table_g_t_mseg_or                     "n1481757
+                      USING    ht_mmdocs_arch               "n1481757
+                      CHANGING g_t_mseg_key                 "n1481757
+                               g_t_mseg_or.                 "n1481757
+        " g_ra_xauto.                 "n1481757
+      ENDIF.                                                "n1481757
 
-      refresh g_t_mseg_key.
-      move g_t_mseg_key_te[] to g_t_mseg_key[].
+      REFRESH g_t_mseg_key.
+      MOVE g_t_mseg_key_te[] TO g_t_mseg_key[].
 
-      IF  NOT g_t_mseg_key[] IS INITIAL.                      "n547170
+      IF  NOT g_t_mseg_key[] IS INITIAL.                    "n547170
 * are there any keys left after reading mm docs from archive?
-      PERFORM hdb_check_table USING 'MSEG' ''.             "n1710850
-      zcl_todo_list=>replace_select( ).
+        PERFORM hdb_check_table USING 'MSEG' ''.            "n1710850
+        zcl_todo_list=>replace_select( ).
 *      SELECT mblnr mjahr zeile matnr xauto                  "n547170
 *           FROM  mseg  CONNECTION (dbcon)                  "n1710850
 *         APPENDING TABLE g_t_mseg_or                        "n547170
@@ -1211,7 +1359,7 @@ FORM f1000_select_mseg_mkpf.
 *           AND  mjahr = g_t_mseg_key-mjahr                  "n547170
 *           AND  zeile = g_t_mseg_key-zeile                  "n547170
 *           AND  xauto IN g_ra_xauto.   "only F, L, M, W     "n547170
-    ENDIF.                                                  "n547170
+      ENDIF.                                                "n547170
     ENDIF.
                                                             "n547170
     SORT  g_t_mseg_or      BY  mblnr mjahr zeile matnr.     "n547170
@@ -1269,7 +1417,7 @@ FORM f1000_select_mseg_mkpf.
     "MESSAGE                  s083.
   ENDIF.
 
-"ENHANCEMENT-POINT EHP605_F1000_SELECT_MSEG_MK_01 SPOTS ES_RM07MLBD .
+  "ENHANCEMENT-POINT EHP605_F1000_SELECT_MSEG_MK_01 SPOTS ES_RM07MLBD .
 *LOG-POINT ID /cwm/enh SUBKEY to_upper( sy-tcode && '\/CWM/APPL_MM_RM07MLBD\EHP605_F1000_SELECT_MSEG_MK_01\' && sy-cprog ) FIELDS /cwm/cl_enh_layer=>get_field( ).
 *
 *DATA: ls_cwm_mseg TYPE mseg.
@@ -1338,7 +1486,7 @@ FORM f1100_check_lgort_sokzg.
     ELSE.
       MOVE  'X'            TO  g_flag_delete.
     ENDIF.
-"ENHANCEMENT-POINT F1100_CHECK_LGORT_SOKZG_01 SPOTS ES_RM07MLBD .
+    "ENHANCEMENT-POINT F1100_CHECK_LGORT_SOKZG_01 SPOTS ES_RM07MLBD .
 
   ELSE.
 *   b) check the combination of special stock indicator and
@@ -1357,7 +1505,7 @@ FORM f1100_check_lgort_sokzg.
         MOVE  'X'            TO  g_flag_delete.
       ENDIF.
     ENDIF.
-"ENHANCEMENT-POINT F1100_CHECK_LGORT_SOKZG_02 SPOTS ES_RM07MLBD .
+    "ENHANCEMENT-POINT F1100_CHECK_LGORT_SOKZG_02 SPOTS ES_RM07MLBD .
 
   ENDIF.
 
@@ -1392,17 +1540,26 @@ FORM f2200_read_t001
                    USING     l_f_werks LIKE zt001w-werks.
 
   STATICS : BEGIN OF l_s_t001w,                             "n999530
-              werks          TYPE  zt001w-werks,             "n999530
-              name1          TYPE  zt001w-name1,             "n999530
+              werks          TYPE  zt001w-werks,            "n999530
+              name1          TYPE  zt001w-name1,            "n999530
             END OF l_s_t001w.                               "n999530
 
 * read name of this plant after the plant has changed       "n999530
   IF  l_f_werks <> l_s_t001w-werks.                         "n999530
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT SINGLE werks name1                               "n999530
 *      FROM t001w                                            "n999530
 *        INTO CORRESPONDING FIELDS OF l_s_t001w              "n999530
 *          WHERE werks = l_f_werks.                         "n1574925
+
+    DATA(lv_where_cond) = |WERKS = `| && l_f_werks && |`|.
+    NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'WERKS NAME1'
+                                                                                                                                                  iv_structure_name = 'ZT001W'
+                                                                                                                                                  iv_table_name = 'T001W'
+                                                                                                                                                  iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                              IMPORTING es_output = l_s_t001w ).
+
+
 
     IF NOT sy-subrc IS INITIAL.                             "n999530
       CLEAR                  l_s_t001w.                     "n999530
@@ -1410,7 +1567,7 @@ FORM f2200_read_t001
     ENDIF.                                                  "n999530
   ENDIF.                                                    "n999530
 
-  MOVE  l_s_t001w-name1      TO  zt001w-name1.               "n999530
+  MOVE  l_s_t001w-name1      TO  zt001w-name1.              "n999530
 
 ENDFORM.                     "f2200_read_t001
 
@@ -1701,10 +1858,30 @@ FORM tpc_check_date_for_all_cc.                             "n486477
   IF  werks[] IS INITIAL.                                   "n486477
 *   no restriction for plant :                              "n486477
 *   get all matching company codes from table T001          "n486477
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT bukrs             FROM t001                      "n486477
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_bukrs       "n486477
 *         WHERE  bukrs IN bukrs.                             "n486477
+
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+    MOVE-CORRESPONDING bukrs[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'BUKRS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T001_01'
+                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                         iv_db_connection = CONV #( '' )
+                                                                                 )->process( IMPORTING et_output = g_t_bukrs ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  g_t_bukrs.
+    ENDTRY.
+
+
+
                                                             "n486477
     IF  sy-subrc <> 0.                                      "n486477
       SET  CURSOR            FIELD  'BUKRS-LOW'.            "n486477
@@ -1770,11 +1947,29 @@ ENDFORM.                     "tpc_check_date_for_all_CC     "n486477
 FORM tpc_check_get_all_cc.                                  "n486477
                                                             "n486477
 * select the matching plants from T001W                     "n486477
-  zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT werks bwkey         FROM  t001w                    "n486477
 *         INTO CORRESPONDING FIELDS OF TABLE g_t_t001w       "n486477
 *         WHERE  werks IN werks.                             "n486477
                                                             "n486477
+
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+  MOVE-CORRESPONDING werks[] TO lt_sel_opt.
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'WERKS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T001W_01'
+                                                                                                       it_select_opt = lt_prop_sel_opt
+                                                                                                       iv_db_connection = CONV #( '' )
+                                                                               )->process( IMPORTING et_output = g_t_t001w ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  g_t_t001w.
+  ENDTRY.
+
   IF  sy-subrc IS INITIAL.                                  "n486477
     SORT  g_t_t001w          BY  werks bwkey.               "n486477
   ELSE.                                                     "n486477
@@ -1783,14 +1978,45 @@ FORM tpc_check_get_all_cc.                                  "n486477
     "MESSAGE e892             WITH   werks-low.              "n486477
   ENDIF.                                                    "n486477
                                                             "n486477
+
+  IF g_t_t001w IS NOT INITIAL.
+
+    DATA lt_t001k TYPE TABLE OF stype_work.
+
+    CLEAR lt_prop_sel_opt.
+
+    MOVE-CORRESPONDING bukrs[] TO lt_sel_opt.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'BUKRS' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    LOOP AT g_t_t001w ASSIGNING FIELD-SYMBOL(<ls_t001w>).
+      INSERT VALUE #( low = CONV #( <ls_t001w>-bwkey ) ) INTO TABLE lt_sel_opt.
+
+    ENDLOOP.
+    INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWKEY' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+    CLEAR lt_sel_opt.
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T001K_01'
+                                                                                                         it_select_opt = lt_prop_sel_opt
+                                                                                                         iv_db_connection = CONV #( '' )
+                                                                                 )->process( IMPORTING et_output = lt_t001k ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  g_s_t001k.
+    ENDTRY.
+
+  ENDIF.
+
   LOOP AT g_t_t001w          INTO  g_s_t001w.               "n486477
 *   select the matching valuation areas and comany codes    "n486477
-zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
+    READ    TABLE lt_t001k INTO g_s_t001k  WITH KEY bwkey = g_s_t001w-bwkey.
 *    SELECT SINGLE bwkey bukrs FROM  t001k                   "n486477
 *         INTO CORRESPONDING FIELDS OF g_s_t001k             "n486477
 *         WHERE  bwkey  =  g_s_t001w-bwkey                   "n486477
 *           AND  bukrs  IN bukrs.                            "n486477
                                                             "n486477
+
     IF  sy-subrc IS INITIAL.                                "n486477
       MOVE  g_s_t001k-bukrs  TO  g_s_bukrs-bukrs.           "n486477
       COLLECT  g_s_bukrs     INTO  g_t_bukrs.               "n486477
@@ -1825,7 +2051,7 @@ FORM tpc_write_log.                                         "n555246
   CHECK : sy-subrc IS INITIAL.                              "n555246
                                                             "n555246
 * write the entries of the selection screen into log file   "n555246
-zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION         'CA_WRITE_LOG'         "#EC EXISTS     "n555246
 *        EXPORTING                                           "n555246
 *          i_program     = g_f_repid                         "n555246
@@ -1846,9 +2072,9 @@ ENDFORM.                     "tpc_write_log                 "n555246
 *&---------------------------------------------------------------------*
 *&      Form  PROCESS_ARCHIVE_MM_DOC
 *&---------------------------------------------------------------------*
-form PROCESS_ARCHIVE_MM_DOC .
-DATA:  g_flag_ok_mkpf(01)    TYPE c,                      "n1481757
-         g_flag_ok_mseg(01)    TYPE c.                      "n1481757
+FORM process_archive_mm_doc .
+  DATA:  g_flag_ok_mkpf(01) TYPE c,                         "n1481757
+         g_flag_ok_mseg(01) TYPE c.                         "n1481757
                                                             "n1481757
   "BREAK-POINT ID MMIM_REP_MB5B.                             "n1481757
 * the result of function module should be the keys for the  "n1481757
@@ -1939,10 +2165,10 @@ DATA:  g_flag_ok_mkpf(01)    TYPE c,                      "n1481757
         CHECK: xmseg-bukrs IN bukrs.                        "n1481757
         CHECK: xmseg-bwart IN bwart.                        "n1481757
 
-           wa_hashtable-mblnr = xmseg-mblnr.                "n1481757
-           wa_hashtable-mjahr = xmseg-mjahr.                "n1481757
+        wa_hashtable-mblnr = xmseg-mblnr.                   "n1481757
+        wa_hashtable-mjahr = xmseg-mjahr.                   "n1481757
                                                             "n1481757
-        Insert wa_hashtable into table ht_mmdocs_arch.      "n1481757
+        INSERT wa_hashtable INTO TABLE ht_mmdocs_arch.      "n1481757
                                                             "n1481757
         PERFORM add_aridx_doc_to_g_t_mseg_lean.             "n1481757
                                                             "n1481757
@@ -1951,11 +2177,11 @@ DATA:  g_flag_ok_mkpf(01)    TYPE c,                      "n1481757
   ENDLOOP.                                                  "n1481757
                                                             "n1481757
                                                             "n1481757
-endform.                    " PROCESS_ARCHIVE_MM_DOC
+ENDFORM.                    " PROCESS_ARCHIVE_MM_DOC
 *&---------------------------------------------------------------------*
 *&      Form  ADD_ARIDX_DOC_TO_G_T_MSEG_LEAN
 *&---------------------------------------------------------------------*
-form ADD_ARIDX_DOC_TO_G_T_MSEG_LEAN .
+FORM add_aridx_doc_to_g_t_mseg_lean .
 * Eliminate dublettes from the archive and tranfer data       "n1481757
 * into working ITAB                                           "n1481757
   READ TABLE g_t_mseg_lean   INTO g_s_mseg_lean             "n1481757
@@ -1990,17 +2216,17 @@ form ADD_ARIDX_DOC_TO_G_T_MSEG_LEAN .
   ENDCASE.                                                  "n1481757
                                                             "n1481757
                                                             "n1481757
-endform.                    " ADD_ARIDX_DOC_TO_G_T_MSEG_LEAN
+ENDFORM.                    " ADD_ARIDX_DOC_TO_G_T_MSEG_LEAN
 *&---------------------------------------------------------------------*
 *&      Form  CHECK_EXISTENCE_AS
 *&---------------------------------------------------------------------*
-form CHECK_EXISTENCE_AS  using    lv_g_flag_exist_as.
+FORM check_existence_as  USING    lv_g_flag_exist_as.
 * check whether the functions modules of the AS archive     "n1481757
 * are available in the system, otherwise the functions for  "n1481757
 * the SA archive will be not carried out                    "n1481757
   lv_g_flag_exist_as = ' '.                                 "n1481757
                                                             "n1481757
-   zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n1481757
 *    EXPORTING                                               "n1481757
 *      funcname           = 'AS_API_INFOSTRUC_FIND'          "n1481757
@@ -2011,7 +2237,7 @@ form CHECK_EXISTENCE_AS  using    lv_g_flag_exist_as.
                                                             "n1481757
   CHECK : sy-subrc IS INITIAL.                              "n1481757
                                                             "n1481757
-zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n1481757
 *    EXPORTING                                               "n1481757
 *      funcname           = 'ASH_MM_MATBEL_READ'             "n1481757
@@ -2021,7 +2247,7 @@ zcl_todo_list=>replace_fm( ).
                                                             "n1481757
   CHECK : sy-subrc IS INITIAL.                              "n1481757
                                                             "n1481757
-    zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n1481757
 *    EXPORTING                                               "n1481757
 *      funcname           = 'AS_API_READ'                    "n1481757
@@ -2032,28 +2258,28 @@ zcl_todo_list=>replace_fm( ).
   CHECK : sy-subrc IS INITIAL.                              "n1481757
   lv_g_flag_exist_as = 'X'.                                 "n1481757
                                                             "n1481757
-endform.                    " CHECK_EXISTENCE_AS
+ENDFORM.                    " CHECK_EXISTENCE_AS
 *&---------------------------------------------------------------------*
 *&      Form  CHECK_ARCHIVE_INDEX
 *&---------------------------------------------------------------------*
-form CHECK_ARCHIVE_INDEX  using    lv_g_flag_too_many_sel
+FORM check_archive_index  USING    lv_g_flag_too_many_sel
                                    lv_fieldname.
   TYPES:  BEGIN OF aind_st_nametab,                         "n1481757
-             tabname     LIKE dd02d-tabname,                "n1481757
-             fieldname   LIKE dd03d-fieldname,              "n1481757
-             keyflag     LIKE dd03d-keyflag,                "n1481757
-             scr_tab     LIKE dd02d-tabname,                "n1481757
-             scr_field   LIKE dd03d-fieldname,              "n1481757
-             key_oblig   TYPE c,                            "n1481757
-           END OF aind_st_nametab,                          "n1481757
-           aind_tt_nametab TYPE aind_st_nametab OCCURS 20.  "n1481757
+            tabname   LIKE dd02d-tabname,                   "n1481757
+            fieldname LIKE dd03d-fieldname,                 "n1481757
+            keyflag   LIKE dd03d-keyflag,                   "n1481757
+            scr_tab   LIKE dd02d-tabname,                   "n1481757
+            scr_field LIKE dd03d-fieldname,                 "n1481757
+            key_oblig TYPE c,                               "n1481757
+          END OF aind_st_nametab,                           "n1481757
+          aind_tt_nametab TYPE aind_st_nametab OCCURS 20.   "n1481757
                                                             "n1481757
-  DATA : lt_nametab          TYPE  aind_tt_nametab,         "n1481757
-          l_nametab           TYPE  aind_st_nametab.        "n1481757
+  DATA : lt_nametab TYPE aind_tt_nametab,                   "n1481757
+         l_nametab  TYPE aind_st_nametab.                   "n1481757
                                                             "n1481757
                                                             "n1481757
 * get the fields of the arch. info structure                "n1481757
-zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'AIND_NAMETAB_GET'                          "n1481757
 *    EXPORTING                                               "n1481757
 *      i_archindex      = pa_aistr                           "n1481757
@@ -2092,11 +2318,11 @@ zcl_todo_list=>replace_fm( ).
     ENDIF.                                                  "n1481757
   ENDLOOP.                                                  "n1481757
                                                             "n1481757
-endform.                    " CHECK_ARCHIVE_INDEX
+ENDFORM.                    " CHECK_ARCHIVE_INDEX
 *&---------------------------------------------------------------------*
 *&      Form  FILL_FRANGE
 *&---------------------------------------------------------------------*
-form FILL_FRANGE .
+FORM fill_frange .
 * copy select-options for field FELDNAME                      "n1481757
 * using select-option table FELDNAME                          "n1481757
                                                             "n1481757
@@ -2163,11 +2389,11 @@ form FILL_FRANGE .
     MOVE 'BUDAT' TO g_s_frange-fieldname.                   "n1481757
     APPEND  g_s_frange   TO  g_t_frange.                    "n1481757
   ENDIF.                                                    "n1481757
-endform.                    " FILL_FRANGE
+ENDFORM.                    " FILL_FRANGE
 *&---------------------------------------------------------------------*
 *&      Form  CALL_AS_API_READ_BLOCK_KEYS
 *&---------------------------------------------------------------------*
-form CALL_AS_API_READ_BLOCK_KEYS
+FORM call_as_api_read_block_keys
                 TABLES l_t_frange   TYPE  stab_frange       "n1481757
                        l_t_as_key   TYPE  stab_as_key.      "n1481757
                                                             "n1481757
@@ -2178,7 +2404,7 @@ form CALL_AS_API_READ_BLOCK_KEYS
 * get the keys for the archive only                         "n1481757
 * the type of the assigned table for "E_RESULTS" determines "n1481757
 * the results                                               "n1481757
-zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'AS_API_READ'                               "n1481757
 *        EXPORTING                                           "n1481757
 *          i_fieldcat         = g_f_afcat                    "n1481757
@@ -2195,17 +2421,17 @@ zcl_todo_list=>replace_fm( ).
         WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.           "n1481757
   ENDIF.                                                    "n1481757
                                                             "n1481757
-endform.                    " CALL_AS_API_READ_BLOCK_KEYS
+ENDFORM.                    " CALL_AS_API_READ_BLOCK_KEYS
 *&---------------------------------------------------------------------*
 *&      Form  GET_ARCHIVE_FIELD_CATALOGS
 *&---------------------------------------------------------------------*
-form GET_ARCHIVE_FIELD_CATALOGS .
+FORM get_archive_field_catalogs .
   CLEAR   : g_f_afcat.                                      "n1481757
   REFRESH : g_t_aind_str1_fc.                               "n1481757
                                                             "n1481757
 *   look for active archive info structures from the        "n1481757
 *   customizing tables aind_str1 and aind_str2              "n1481757
-zcl_todo_list=>replace_select( ).
+*  zcl_todo_list=>replace_select( ).
 *  SELECT aind_str1~archindex                "#EC CI_BYPASS  "n1511550
 *       aind_str1~itype                                      "n1481757
 *       aind_str1~skey                                       "n1481757
@@ -2216,6 +2442,27 @@ zcl_todo_list=>replace_select( ).
 *           AND aind_str1~archindex = pa_aistr               "n1481757
 *           AND object = 'MM_MATBEL'                         "n1481757
 *           AND active = 'X'.                                "n1481757
+
+  DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+  DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+
+  INSERT VALUE #(  low =  CONV #(  pa_aistr ) ) INTO TABLE lt_sel_opt.
+
+  INSERT VALUE /iwbep/s_mgw_select_option( property = 'AISTR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
+  CLEAR lt_sel_opt.
+
+  TRY.
+      NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'AIND_01'
+                                                                                                       it_select_opt = lt_prop_sel_opt
+                                                                                                       iv_db_connection = CONV #( '' )
+                                                                               )->process( IMPORTING et_output = g_t_aind_str1_ais ).
+    CATCH zcx_process_mb5b_select.
+      CLEAR  g_t_aind_str1_ais.
+  ENDTRY.
+
+
+
 * there must be one entry                                   "n1481757
   IF sy-dbcnt <> 1.                                         "n1481757
     SET CURSOR               FIELD 'PA_AISTR'.              "n1481757
@@ -2228,104 +2475,104 @@ zcl_todo_list=>replace_select( ).
       INDEX 1.                                              "n1481757
                                                             "n1481757
   CHECK : sy-subrc IS INITIAL.                              "n1481757
-endform.                    " GET_ARCHIVE_FIELD_CATALOGS
+ENDFORM.                    " GET_ARCHIVE_FIELD_CATALOGS
 *&---------------------------------------------------------------------*
 *&      Form  FILL_TABLE_G_T_MSEG_OR
 *&---------------------------------------------------------------------*
-form FILL_TABLE_G_T_MSEG_OR                                 "n1481757
-            using    uht_mmdocs_arch
-            changing ct_mseg_key type stab_mseg_xauto
-                     ct_mseg_or type stab_mseg_xauto.
-                    " c_ra_xauto.
+FORM fill_table_g_t_mseg_or                                 "n1481757
+            USING    uht_mmdocs_arch
+            CHANGING ct_mseg_key TYPE stab_mseg_xauto
+                     ct_mseg_or TYPE stab_mseg_xauto.
+  " c_ra_xauto.
 
-data: lt_mseg_key type stab_mseg_xauto,
-      lt_mseg_key_group LIKE lt_mseg_key.
+  DATA: lt_mseg_key       TYPE stab_mseg_xauto,
+        lt_mseg_key_group LIKE lt_mseg_key.
 
-types: begin of ts_group,
-          mblnr LIKE zMKPF-MBLNR,
-          mjahr LIKE zMKPF-MJAHR,
-       end of ts_group.
+  TYPES: BEGIN OF ts_group,
+           mblnr LIKE zmkpf-mblnr,
+           mjahr LIKE zmkpf-mjahr,
+         END OF ts_group.
 
-data: ls_group_new type ts_group,
-      ls_group_old type ts_group.
+  DATA: ls_group_new TYPE ts_group,
+        ls_group_old TYPE ts_group.
 
 *data: lt_ra_xauto like gt_ra_xauto.
 
-field-symbols  <ls_mseg_key> like line of ct_mseg_key.
+  FIELD-SYMBOLS  <ls_mseg_key> LIKE LINE OF ct_mseg_key.
 
 *-----------------------------------------------------------------------*
 
-move ct_mseg_key[] to lt_mseg_key[].
-refresh ct_mseg_key.
+  MOVE ct_mseg_key[] TO lt_mseg_key[].
+  REFRESH ct_mseg_key.
 
 *APPEND c_ra_xauto to lt_ra_xauto.
 
-sort lt_mseg_key by mblnr mjahr zeile.
+  SORT lt_mseg_key BY mblnr mjahr zeile.
 
-loop at lt_mseg_key assigning <ls_mseg_key>.
-  move-corresponding <ls_mseg_key> to ls_group_new.
+  LOOP AT lt_mseg_key ASSIGNING <ls_mseg_key>.
+    MOVE-CORRESPONDING <ls_mseg_key> TO ls_group_new.
 
-  if ls_group_new <> ls_group_old.
-    perform  fill_table_g_t_mseg_or_group
+    IF ls_group_new <> ls_group_old.
+      PERFORM  fill_table_g_t_mseg_or_group
 *            using     lt_ra_xauto
-            changing  lt_mseg_key_group
-                      lt_mseg_key
-                      ct_mseg_or.
+              CHANGING  lt_mseg_key_group
+                        lt_mseg_key
+                        ct_mseg_or.
 
-    move ls_group_new to ls_group_old.
-    refresh lt_mseg_key_group.
-  endif.
+      MOVE ls_group_new TO ls_group_old.
+      REFRESH lt_mseg_key_group.
+    ENDIF.
 
-  append <ls_mseg_key>  to lt_mseg_key_group.
+    APPEND <ls_mseg_key>  TO lt_mseg_key_group.
 
-endloop.
+  ENDLOOP.
 
- perform  fill_table_g_t_mseg_or_group
+  PERFORM  fill_table_g_t_mseg_or_group
 *            using     lt_ra_xauto
-            changing  lt_mseg_key_group
-                      lt_mseg_key
-                      ct_mseg_or.
-endform.                    " FILL_TABLE_G_T_MSEG_OR         "n1481757
+             CHANGING  lt_mseg_key_group
+                       lt_mseg_key
+                       ct_mseg_or.
+ENDFORM.                    " FILL_TABLE_G_T_MSEG_OR         "n1481757
 *&---------------------------------------------------------------------*
 *&      Form  FILL_TABLE_G_T_MSEG_OR_GROUP
 *&---------------------------------------------------------------------*
-form FILL_TABLE_G_T_MSEG_OR_GROUP                            "n1481757
+FORM fill_table_g_t_mseg_or_group                           "n1481757
 *            using    ut_ra_xauto       like gt_ra_xauto
-            changing ct_mseg_key_group type stab_mseg_xauto
-                     ct_mseg_key       type stab_mseg_xauto
-                     ct_mseg_or        type stab_mseg_xauto.
+            CHANGING ct_mseg_key_group TYPE stab_mseg_xauto
+                     ct_mseg_key       TYPE stab_mseg_xauto
+                     ct_mseg_or        TYPE stab_mseg_xauto.
 
 *--------------------------------------------------------------------*
-data: ls_mseg_key_group like line of ct_mseg_key_group,
-      ls_mseg_or like line of  ct_mseg_or.
+  DATA: ls_mseg_key_group LIKE LINE OF ct_mseg_key_group,
+        ls_mseg_or        LIKE LINE OF ct_mseg_or.
 *      lt_mseg_archiv Like mseg.
 
-DATA : BEGIN OF lt_mseg_archiv  OCCURS 0.
-        INCLUDE STRUCTURE   zmseg.
-DATA : END OF lt_mseg_archiv.
+  DATA : BEGIN OF lt_mseg_archiv  OCCURS 0.
+          INCLUDE STRUCTURE   zmseg.
+  DATA : END OF lt_mseg_archiv.
 
-field-symbols : <ls_mseg_archiv> Like line of lt_mseg_archiv.
+  FIELD-SYMBOLS : <ls_mseg_archiv> LIKE LINE OF lt_mseg_archiv.
 
 *--------------------------------------------------------------------*
 
-read table ct_mseg_key_group into ls_mseg_key_group
-    index 1.
+  READ TABLE ct_mseg_key_group INTO ls_mseg_key_group
+      INDEX 1.
 
-if sy-subrc <> 0.
-    return.
-endif.
+  IF sy-subrc <> 0.
+    RETURN.
+  ENDIF.
 
-read table  ht_mmdocs_arch Into wa_hashtable
-   with table key mblnr = ls_mseg_key_group-mblnr
-                  mjahr = ls_mseg_key_group-mjahr.
+  READ TABLE  ht_mmdocs_arch INTO wa_hashtable
+     WITH TABLE KEY mblnr = ls_mseg_key_group-mblnr
+                    mjahr = ls_mseg_key_group-mjahr.
 
 * check if there are mm docs from the archive
 
- if sy-subrc <> 0.
-    append LINES OF ct_mseg_key_group to g_t_mseg_key_te.
-    return.
-endif.
-zcl_todo_list=>replace_fm( ).
+  IF sy-subrc <> 0.
+    APPEND LINES OF ct_mseg_key_group TO g_t_mseg_key_te.
+    RETURN.
+  ENDIF.
+  zcl_todo_list=>replace_fm( ).
 *CALL FUNCTION 'ASH_MM_MATBEL_READ'
 * EXPORTING
 *   I_ARCHIVEKEY                 = wa_hashtable-archivekey
@@ -2335,29 +2582,29 @@ zcl_todo_list=>replace_fm( ).
 * EXCEPTIONS
 *   NOT_IN_ARCHIVE               = 1
 *   OTHERS                       = 2.
-IF sy-subrc <> 0.
- MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
-         WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
-ENDIF.
+  IF sy-subrc <> 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
 
-loop at lt_mseg_archiv assigning <ls_mseg_archiv>.
+  LOOP AT lt_mseg_archiv ASSIGNING <ls_mseg_archiv>.
 
-  read table ct_mseg_key_group into ls_mseg_key_group
-    with key mblnr = <ls_mseg_archiv>-mblnr
-             mjahr = <ls_mseg_archiv>-mjahr
-             zeile = <ls_mseg_archiv>-zeile binary search.
+    READ TABLE ct_mseg_key_group INTO ls_mseg_key_group
+      WITH KEY mblnr = <ls_mseg_archiv>-mblnr
+               mjahr = <ls_mseg_archiv>-mjahr
+               zeile = <ls_mseg_archiv>-zeile BINARY SEARCH.
 
-  check sy-subrc is initial.
+    CHECK sy-subrc IS INITIAL.
 *  delete ct_mseg_key_group.
 
-if ls_mseg_key_group-xauto in g_ra_xauto.
-  move-CORRESPONDING <ls_mseg_archiv> to ls_mseg_or.
-  append ls_mseg_or to ct_mseg_or.
-endif.
+    IF ls_mseg_key_group-xauto IN g_ra_xauto.
+      MOVE-CORRESPONDING <ls_mseg_archiv> TO ls_mseg_or.
+      APPEND ls_mseg_or TO ct_mseg_or.
+    ENDIF.
 
-if ct_mseg_key_group is INITIAL.
-    exit.
-endif.
+    IF ct_mseg_key_group IS INITIAL.
+      EXIT.
+    ENDIF.
 
-endloop.                                                     "n1481757
-endform.             " FILL_TABLE_G_T_MSEG_OR_GROUP          "n1481757
+  ENDLOOP.                                                  "n1481757
+ENDFORM.             " FILL_TABLE_G_T_MSEG_OR_GROUP          "n1481757
