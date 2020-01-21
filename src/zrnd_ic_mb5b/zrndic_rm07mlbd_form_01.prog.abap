@@ -59,14 +59,14 @@ FORM initialisierung.
 * Default-Variante holen:
   def_variante = variante.
 
-  zcl_todo_list=>replace_fm( ).
-*  CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
-*    EXPORTING
-*      i_save     = variant_save
-*    CHANGING
-*      cs_variant = def_variante
-*    EXCEPTIONS
-*      not_found  = 2.
+*  zcl_todo_list=>replace_fm( ).
+  CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
+    EXPORTING
+      i_save     = variant_save
+    CHANGING
+      cs_variant = def_variante
+    EXCEPTIONS
+      not_found  = 2.
   IF sy-subrc = 0.
 *   save the initial, e.g. default variant                  "n599218
     MOVE  def_variante-variant  TO  alv_default_variant.    "n599218
@@ -1883,7 +1883,42 @@ FORM belege_ergaenzen.                         "Version from note 204872
 *                     AND  belnr = g_t_bkpf_key-belnr
 *                     AND  gjahr = g_t_bkpf_key-gjahr.
 
-    IF  sy-subrc IS INITIAL.
+    DATA lt_prop_sel_opt TYPE /iwbep/t_mgw_select_option.
+    DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
+
+    DATA lt_add_table_content TYPE  zrndic_deep_name_value_tt.
+    DATA lt_add_table TYPE  zrndic_deep_add_tab_tt.
+
+    LOOP AT  g_t_bkpf_key ASSIGNING FIELD-SYMBOL(<ls_bkpf>).
+      DATA(lv_tabix) = sy-tabix.
+      INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING FIELD-SYMBOL(<ls_add_table_content>).
+      <ls_add_table_content>-row_id = lv_tabix.
+      <ls_add_table_content>-field_name = 'BUKRS'.
+      <ls_add_table_content>-field_value = <ls_bkpf>-bukrs.
+      <ls_add_table_content>-field_name = 'BELNR'.
+      <ls_add_table_content>-field_value = <ls_bkpf>-belnr.
+      <ls_add_table_content>-field_name = 'GJAHR'.
+      <ls_add_table_content>-field_value = <ls_bkpf>-gjahr.
+    ENDLOOP.
+
+    INSERT VALUE #( table_name = 'BKPF_KEY' addtablecontent = lt_add_table_content ) INTO TABLE lt_add_table.
+
+
+
+    TRY.
+        NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'BKPF_01'
+                                                                                                                                                   it_add_table = lt_add_table
+                                                                                                                                                   iv_db_connection = CONV #( dbcon )
+                                                                                                                                                     )->process( IMPORTING et_output = g_t_bkpf ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  g_t_mseg_lean.
+    ENDTRY.
+
+
+
+
+    "IF  sy-subrc IS INITIAL.
+    IF g_t_bkpf IS INITIAL.
 *     create working table l_t_keytab_m
       FREE                   g_t_bkpf_key.
 
@@ -3057,7 +3092,7 @@ FORM listausgabe.
     DATA: l_level TYPE i.                                   "n890109
     DATA: lt_sort TYPE kkblo_t_sortinfo.                    "n890109
                                                             "n890109
-    zcl_todo_list=>replace_fm( ).
+    zcl_todo_list=>ivan( ). "this seem to operate on internal variable
 *    CALL FUNCTION 'K_KKB_SUMLEVEL_OF_LIST_GET'              "n890109
 *      IMPORTING                                             "n890109
 *        e_sumlevel = l_level                      "n890109

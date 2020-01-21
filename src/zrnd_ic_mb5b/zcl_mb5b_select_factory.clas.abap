@@ -165,6 +165,16 @@ CLASS zcl_mb5b_select_factory IMPLEMENTATION.
                                                                                     iv_package_size = iv_package_size
                                                                                     it_select_opt   = it_select_opt
                                                                                     it_add_table = it_add_table ).
+      WHEN 'BSEG_01'.
+        ro_instace = NEW zcl_mb5b_select_bseg_01( iv_select_name = iv_select_name
+                                                                                    iv_package_size = iv_package_size
+                                                                                    it_select_opt   = it_select_opt
+                                                                                    it_add_table = it_add_table ).
+      WHEN 'MSEG_01'.
+        ro_instace = NEW zcl_mb5b_select_mseg_01( iv_select_name = iv_select_name
+                                                                                    iv_package_size = iv_package_size
+                                                                                    it_select_opt   = it_select_opt
+                                                                                    it_add_table = it_add_table ).
       WHEN OTHERS.
         RAISE EXCEPTION TYPE zcx_process_mb5b_select.
     ENDCASE.

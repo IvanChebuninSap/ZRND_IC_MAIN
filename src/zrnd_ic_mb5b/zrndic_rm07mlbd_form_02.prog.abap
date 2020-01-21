@@ -791,15 +791,15 @@ FORM f0800_check_restrictions.                              "n547170
 
     LOOP AT lt_ttypv ASSIGNING FIELD-SYMBOL(<ls_ttypv>).
                                                             "n1278202
-      IF <ls_ttypv>-awtyp = 'MKPF'.                              "n1278202
+      IF <ls_ttypv>-awtyp = 'MKPF'.                         "n1278202
 *       any entry from AWTYP = MKPF could lead to wrong     "n1278202
 *       results -> send message                             "n1278202
         MOVE  'X'         TO  l_flag_m7390.                 "n1278202
         EXIT.                                               "n1278202
       ENDIF.                                                "n1278202
                                                             "n497992
-      IF <ls_ttypv>-fieldname = '*'      OR                      "n497992
-         <ls_ttypv>-fieldname = 'MATNR'.                         "n497992
+      IF <ls_ttypv>-fieldname = '*'      OR                 "n497992
+         <ls_ttypv>-fieldname = 'MATNR'.                    "n497992
 *       avoid error reported by the code inspector : to
 *       emerge this message during this SELECT - ENDSELECT
 *       loop will create a problem for the database cursor
@@ -1359,6 +1359,46 @@ FORM f1000_select_mseg_mkpf.
 *           AND  mjahr = g_t_mseg_key-mjahr                  "n547170
 *           AND  zeile = g_t_mseg_key-zeile                  "n547170
 *           AND  xauto IN g_ra_xauto.   "only F, L, M, W     "n547170
+
+        DATA lt_add_table_content TYPE  zrndic_deep_name_value_tt.
+        DATA lt_add_table TYPE  zrndic_deep_add_tab_tt.
+
+        DATA lt_mseg_or LIKE g_t_mseg_or.
+
+        CLEAR lt_prop_sel_opt.
+        CLEAR lt_sel_opt.
+
+
+        LOOP AT  g_t_mseg_key ASSIGNING FIELD-SYMBOL(<ls_mseg_key>).
+          DATA(lv_tabix) = sy-tabix.
+          INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING FIELD-SYMBOL(<ls_add_table_content>).
+          <ls_add_table_content>-row_id = lv_tabix.
+          <ls_add_table_content>-field_name = 'MBLNR'.
+          <ls_add_table_content>-field_value = <ls_mseg_key>-mblnr.
+          <ls_add_table_content>-field_name = 'MJAHR'.
+          <ls_add_table_content>-field_value = <ls_mseg_key>-mjahr.
+          <ls_add_table_content>-field_name = 'ZEILE'.
+          <ls_add_table_content>-field_value = <ls_mseg_key>-zeile.
+        ENDLOOP.
+
+        INSERT VALUE #( table_name = 'MSEG_KEY' addtablecontent = lt_add_table_content ) INTO TABLE lt_add_table.
+
+
+        MOVE-CORRESPONDING g_ra_xauto[] TO lt_sel_opt.
+        INSERT VALUE #( property = 'XAUTO' select_options = lt_sel_opt   ) INTO TABLE lt_prop_sel_opt.
+
+        TRY.
+            NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MSEG_01'
+                                                                                                                                                       it_add_table = lt_add_table
+                                                                                                                                                       iv_db_connection = CONV #( dbcon )
+                                                                                                                                                         )->process( IMPORTING et_output = lt_mseg_or ).
+          CATCH zcx_process_mb5b_select.
+            CLEAR  lt_mseg_or.
+        ENDTRY.
+
+
+
+
       ENDIF.                                                "n547170
     ENDIF.
                                                             "n547170
@@ -2051,13 +2091,13 @@ FORM tpc_write_log.                                         "n555246
   CHECK : sy-subrc IS INITIAL.                              "n555246
                                                             "n555246
 * write the entries of the selection screen into log file   "n555246
-  zcl_todo_list=>replace_fm( ).
-*  CALL FUNCTION         'CA_WRITE_LOG'         "#EC EXISTS     "n555246
-*        EXPORTING                                           "n555246
-*          i_program     = g_f_repid                         "n555246
-*        EXCEPTIONS                                          "n555246
-*          write_error   = 1                                 "n555246
-*          OTHERS        = 2.                                "n555246
+*  zcl_todo_list=>replace_fm( ).
+  CALL FUNCTION 'CA_WRITE_LOG'         "#EC EXISTS     "n555246
+    EXPORTING                                           "n555246
+      i_program   = g_f_repid                         "n555246
+    EXCEPTIONS                                          "n555246
+      write_error = 1                                 "n555246
+      OTHERS      = 2.                                "n555246
                                                             "n555246
   IF sy-subrc IS INITIAL.                                   "n555246
     COMMIT WORK.                                            "n555246

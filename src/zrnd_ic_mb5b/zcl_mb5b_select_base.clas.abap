@@ -277,8 +277,11 @@ CLASS zcl_mb5b_select_base IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF |"High":""| IN cv_json WITH |"High":null|.
 
     REPLACE ALL OCCURRENCES OF |"ADDTABLE"| IN cv_json WITH |"AddTable"|.
+    REPLACE ALL OCCURRENCES OF |"ADDTABLECONTENT"| IN cv_json WITH |"AddTableContent"|.
+
+
     REPLACE ALL OCCURRENCES OF |"TABLE_NAME"| IN cv_json WITH |"TableName"|.
-    REPLACE ALL OCCURRENCES OF |"ROW_ID"| IN cv_json WITH |"Row_Id"|.
+    REPLACE ALL OCCURRENCES OF |"ROW_ID"| IN cv_json WITH |"RowId"|.
     REPLACE ALL OCCURRENCES OF |"FIELD_NAME"| IN cv_json WITH |"FieldName"|.
     REPLACE ALL OCCURRENCES OF |"FIELD_VALUE"| IN cv_json WITH |"FieldValue"|.
   ENDMETHOD.

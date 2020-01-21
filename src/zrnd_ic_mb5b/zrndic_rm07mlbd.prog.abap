@@ -12,7 +12,7 @@ INITIALIZATION.
   mgv_matnr_prog = sy-repid.
   mgv_matnr_selopt_tab-name = 'MATNR' .
   APPEND mgv_matnr_selopt_tab.
-  zcl_todo_list=>replace_fm( ).
+  zcl_todo_list=>ivan( ). "there is no point to move this FM, it changes internal variables
 *call function 'MGV_SELOP_AFTER_INITIALIZATION'
 *     EXPORTING
 *         PROGRAM        = mgv_matnr_prog
@@ -2734,12 +2734,12 @@ FORM eingaben_pruefen.
   IF NOT p_vari IS INITIAL.
     MOVE variante TO def_variante.
     MOVE p_vari TO def_variante-variant.
-    zcl_todo_list=>replace_fm( ).
-*    CALL FUNCTION 'REUSE_ALV_VARIANT_EXISTENCE'
-*      EXPORTING
-*        i_save     = variant_save
-*      CHANGING
-*        cs_variant = def_variante.
+*    zcl_todo_list=>replace_fm( ).
+    CALL FUNCTION 'REUSE_ALV_VARIANT_EXISTENCE'
+      EXPORTING
+        i_save     = variant_save
+      CHANGING
+        cs_variant = def_variante.
     variante = def_variante.
   ELSE.
 *   the user wants no initial display variant               "n599218
@@ -2781,12 +2781,12 @@ FORM variant_check_existence
 
   IF  NOT l_vari IS INITIAL.
 *   parameter for the variant is filled.
-    zcl_todo_list=>replace_fm( ).
-*    CALL FUNCTION 'REUSE_ALV_VARIANT_EXISTENCE'
-*      EXPORTING
-*        i_save     = 'A'
-*      CHANGING
-*        cs_variant = ls_vari.
+*    zcl_todo_list=>replace_fm( ).
+    CALL FUNCTION 'REUSE_ALV_VARIANT_EXISTENCE'
+      EXPORTING
+        i_save     = 'A'
+      CHANGING
+        cs_variant = ls_vari.
 
 *   in the case the variant does not exist this function
 *   module sends the error message directly
@@ -2822,15 +2822,15 @@ FORM get_the_default_variant
                    ls_vari     LIKE  disvariant
                    ls_vari_def LIKE  disvariant.
 
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 
-*  CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
-*    EXPORTING
-*      i_save     = variant_save
-*    CHANGING
-*      cs_variant = ls_vari_def
-*    EXCEPTIONS
-*      not_found  = 2.
+  CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
+    EXPORTING
+      i_save     = variant_save
+    CHANGING
+      cs_variant = ls_vari_def
+    EXCEPTIONS
+      not_found  = 2.
 
   IF sy-subrc = 0.
 *   save the initial, e.g. default variant
@@ -2850,18 +2850,18 @@ FORM variant_value_request_f4
 
   DATA : ls_vari_return      LIKE  disvariant.
 
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 
-*  CALL FUNCTION 'REUSE_ALV_VARIANT_F4'
-*    EXPORTING
-*      is_variant = ls_vari
-*      i_save     = 'A'
-**     it_default_fieldcat =
-*    IMPORTING
-*      e_exit     = variant_exit
-*      es_variant = ls_vari_return
-*    EXCEPTIONS
-*      not_found  = 2.
+  CALL FUNCTION 'REUSE_ALV_VARIANT_F4'
+    EXPORTING
+      is_variant = ls_vari
+      i_save     = 'A'
+*     it_default_fieldcat =
+    IMPORTING
+      e_exit     = variant_exit
+      es_variant = ls_vari_return
+    EXCEPTIONS
+      not_found  = 2.
 
   IF sy-subrc = 2.
     MESSAGE ID sy-msgid TYPE 'S' NUMBER sy-msgno
