@@ -3,18 +3,18 @@ INTERFACE zif_call_odata_url
 
   METHODS call_odata_by_url
     IMPORTING
-      !iv_url TYPE string
+              !iv_url TYPE string
     EXPORTING
-      ev_xml TYPE xstring
-    RAISING ZCX_ODATA_CALL_URI  .
+              ev_xml  TYPE xstring
+    RAISING   zcx_odata_call_uri .
 
   METHODS call_odata_by_url_post
     IMPORTING
-      !iv_url TYPE string
-      !iv_payload TYPE xstring OPTIONAL
+              !iv_url     TYPE string
+              !iv_payload TYPE xstring OPTIONAL
     EXPORTING
-      ev_xml TYPE xstring
-    RAISING ZCX_ODATA_CALL_URI  .
+              ev_xml      TYPE xstring
+    RAISING   zcx_odata_call_uri .
 
 
 ENDINTERFACE.

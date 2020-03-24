@@ -6,6 +6,8 @@ CLASS zcl_mb5b_select_base DEFINITION
 
     INTERFACES zif_mb5b_select_base .
 
+    CONSTANTS cv_service_id TYPE char40 VALUE 'MB5B_SELECT'.
+
     METHODS constructor
       IMPORTING
         !iv_select_name   TYPE string
@@ -65,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_mb5b_select_base IMPLEMENTATION.
+CLASS ZCL_MB5B_SELECT_BASE IMPLEMENTATION.
 
 
   METHOD call_odata_uri.
@@ -81,7 +83,8 @@ CLASS zcl_mb5b_select_base IMPLEMENTATION.
 
     lv_payload_s = mv_payload.
 
-    lv_url = |http://evbyminsd74b3.minsk.epam.com:8000/sap/opu/odata/sap/ZRNDIC_MB5B_SELECT_SRV/SelectHeaderSet|.
+    "lv_url = |http://evbyminsd74b3.minsk.epam.com:8000/sap/opu/odata/sap/ZRNDIC_MB5B_SELECT_SRV/SelectHeaderSet|.
+    lv_url = NEW zcl_get_service_url( )->zif_get_service_url~get_service_url(  EXPORTING iv_service_id = cv_service_id ).
 
     TRY.
 
@@ -215,6 +218,7 @@ CLASS zcl_mb5b_select_base IMPLEMENTATION.
 
     DATA lt_xml TYPE TABLE OF smum_xmltb.
     DATA:  lt_return TYPE STANDARD TABLE OF bapiret2.
+    DATA ls_result TYPE zselect_generic_ui_s.
 
     CALL FUNCTION 'SMUM_XML_PARSE'
       EXPORTING
@@ -228,27 +232,35 @@ CLASS zcl_mb5b_select_base IMPLEMENTATION.
     IF NOT lt_xml IS INITIAL.
 
       TRY.
-          DATA(lv_hier) = 7."  lt_xml[ cname = 'TableName' ]-hier - 1.
+          DATA(lv_sel_body_hier) = 7."  lt_xml[ cname = 'TableName' ]-hier - 1.
+          DATA(lv_add_table_hier) = 11."  lt_xml[ cname = 'TableName' ]-hier - 1.
 
-          LOOP AT lt_xml INTO   DATA(ls_xml) WHERE hier EQ lv_hier.
+          LOOP AT lt_xml INTO   DATA(ls_xml) WHERE hier EQ lv_sel_body_hier OR
+                                                                                     hier EQ lv_add_table_hier.
 
             DATA(lv_tabix) = sy-tabix + 1.
-            INSERT INITIAL LINE INTO TABLE et_select_result ASSIGNING FIELD-SYMBOL(<ls_tab>).
+            CLEAR ls_result.
             DO 3 TIMES.
 
               CASE lt_xml[ lv_tabix  ]-cname.
 
                 WHEN 'FieldValue'.
-                  <ls_tab>-field_value = lt_xml[ lv_tabix  ]-cvalue.
+                  ls_result-field_value = lt_xml[ lv_tabix  ]-cvalue.
                 WHEN 'FieldName'.
-                  <ls_tab>-field_name = lt_xml[ lv_tabix  ]-cvalue.
+                  ls_result-field_name = lt_xml[ lv_tabix  ]-cvalue.
                 WHEN 'RowId'.
-                  <ls_tab>-row_id = lt_xml[ lv_tabix  ]-cvalue.
+                  ls_result-row_id = lt_xml[ lv_tabix  ]-cvalue.
 
               ENDCASE.
               lv_tabix = lv_tabix  + 1.
             ENDDO.
+            IF ls_result IS NOT INITIAL.
+              APPEND ls_result TO et_select_result.
+            ENDIF.
           ENDLOOP.
+
+
+
         CATCH cx_sy_itab_line_not_found.
           CLEAR lt_xml.
       ENDTRY.
@@ -275,10 +287,12 @@ CLASS zcl_mb5b_select_base IMPLEMENTATION.
     REPLACE |"SELECTBODY":| IN cv_json WITH  |"SelectBody":|.
 
     REPLACE ALL OCCURRENCES OF |"High":""| IN cv_json WITH |"High":null|.
+    REPLACE ALL OCCURRENCES OF |"Sign":""| IN cv_json WITH |"Sign":null|.
+    REPLACE ALL OCCURRENCES OF |"Option":""| IN cv_json WITH |"Option":null|.
 
     REPLACE ALL OCCURRENCES OF |"ADDTABLE"| IN cv_json WITH |"AddTable"|.
     REPLACE ALL OCCURRENCES OF |"ADDTABLECONTENT"| IN cv_json WITH |"AddTableContent"|.
-
+    REPLACE ALL OCCURRENCES OF |"STRUCTURE_NAME":"",| IN cv_json WITH ||.
 
     REPLACE ALL OCCURRENCES OF |"TABLE_NAME"| IN cv_json WITH |"TableName"|.
     REPLACE ALL OCCURRENCES OF |"ROW_ID"| IN cv_json WITH |"RowId"|.

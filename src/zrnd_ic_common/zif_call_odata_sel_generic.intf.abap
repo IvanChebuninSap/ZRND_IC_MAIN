@@ -1,5 +1,5 @@
-interface ZIF_CALL_ODATA_SEL_GENERIC
-  public .
+INTERFACE zif_call_odata_sel_generic
+  PUBLIC .
 
   METHODS call_generic_select
     IMPORTING

@@ -13,15 +13,14 @@ INITIALIZATION.
   mgv_matnr_selopt_tab-name = 'MATNR' .
   APPEND mgv_matnr_selopt_tab.
   zcl_todo_list=>ivan( ). "there is no point to move this FM, it changes internal variables
-*call function 'MGV_SELOP_AFTER_INITIALIZATION'
-*     EXPORTING
-*         PROGRAM        = mgv_matnr_prog
-*     TABLES
-*         SELOP          = mgv_matnr_selopt_tab
-*     EXCEPTIONS
-*         NO_PROGRAMNAME = 1
-*         OTHERS         = 2
-*          .
+*  CALL FUNCTION 'MGV_SELOP_AFTER_INITIALIZATION'
+*    EXPORTING
+*      program        = mgv_matnr_prog
+*    TABLES
+*      selop          = mgv_matnr_selopt_tab
+*    EXCEPTIONS
+*      no_programname = 1
+*      OTHERS         = 2.
 
   DATA: lt_sel_dtel TYPE rsseldtel OCCURS 0,                "MPN note 1038652
         ls_sel_dtel TYPE rsseldtel.
@@ -56,11 +55,11 @@ START-OF-SELECTION.
     mgv_matnr_selopt_tab-name.
     ASSIGN (mgv_matnr_selopt_tab-name) TO <mgv_matnr_selopt_conv>.
     IF sy-subrc IS INITIAL.
-      CALL FUNCTION 'MGV_SELOP_AFTER_START_OF_SEL'
-        EXPORTING
-          selopt_name = mgv_matnr_selopt_tab-name
-        TABLES
-          range       = <mgv_matnr_selopt_conv>.
+*      CALL FUNCTION 'MGV_SELOP_AFTER_START_OF_SEL'
+*        EXPORTING
+*          selopt_name = mgv_matnr_selopt_tab-name
+*        TABLES
+*          range       = <mgv_matnr_selopt_conv>.
     ENDIF.
   ENDLOOP.
 
@@ -528,20 +527,45 @@ INITIALIZATION.
   gv_switch_ehp6ru = zcl_fin_locru_switch_check=>fin_locru_sfws_ui_02( ).
 
 * begin of secondary database settings                     "n1710850
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'
 *    EXPORTING
 *      funcname           = c_hdb_dbcon_get
 *    EXCEPTIONS
 *      function_not_exist = 1
 *      OTHERS             = 2.
-  IF sy-subrc = 0.
-    CALL FUNCTION c_hdb_dbcon_get
-      EXPORTING
-        i_subappl        = c_hdb_subappl
-        i_act_check_only = abap_true
-      IMPORTING
-        e_dbcon          = dbcon_active.
+
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = c_hdb_dbcon_get  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc) ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+
+
+*  IF sy-subrc = 0.
+  IF lv_subrc = 0.
+*    zcl_todo_list=>replace_fm( ).
+*    CALL FUNCTION c_hdb_dbcon_get
+*      EXPORTING
+*        i_subappl        = c_hdb_subappl
+*        i_act_check_only = abap_true
+*      IMPORTING
+*        e_dbcon          = dbcon_active.
+
+    TRY.
+        DATA(lo_fm_handler2) = NEW zcl_mb5b_fm_dbcon_get_01( iv_fm_name = 'MM_HDB_DBCON_GET'  ).
+        lo_fm_handler2->zif_mb5b_fm_dbcon_get_01~set_input( EXPORTING iv_subappl = c_hdb_subappl iv_act_check = abap_true  ) .
+        lo_fm_handler2->zif_mb5b_fm_base~process( ).
+        lo_fm_handler2->zif_mb5b_fm_dbcon_get_01~get_results(  IMPORTING  ev_dbcon = dbcon_active ).
+      CATCH zcx_process_mb5b_select.
+
+    ENDTRY.
+
+
   ENDIF.
 * end of secondary database settings                       "n1710850
   PERFORM check_ui_opti_badi.                               "1790231
@@ -589,7 +613,6 @@ AT SELECTION-SCREEN.
 *     access via material number : material entered ?       "n921165
       IF  matnr[] IS INITIAL.                               "n921165
         SET CURSOR         FIELD  pa_dbmat.                 "n921165
-        zcl_todo_list=>ivan( ).
         " MESSAGE  w895      WITH  text-115.                  "n921165
       ENDIF.                                                "n921165
                                                             "n921165
@@ -598,7 +621,6 @@ AT SELECTION-SCREEN.
       IF  datum-low  IS INITIAL AND                         "n921165
           datum-high IS INITIAL.                            "n921165
         SET CURSOR         FIELD  pa_dbdat.                 "n921165
-        zcl_todo_list=>ivan( ).
         " MESSAGE  w895      WITH  text-115.                  "n921165
       ENDIF.                                                "n921165
                                                             "n921165
@@ -616,7 +638,6 @@ AT SELECTION-SCREEN.
 *  ok, the old parameters are empty                         "n599218
   ELSE.                                                     "n599218
 *   text-088 : note 599218 : obsolete parameter used        "n599218
-    zcl_todo_list=>ivan( ).
     "MESSAGE e895             WITH  text-088.                "n599218
   ENDIF.
 
@@ -653,7 +674,6 @@ AT SELECTION-SCREEN.
       pa_sumfl = 'X'.
     SET CURSOR               FIELD 'XSUM'.
 *   select one sum list only
-    zcl_todo_list=>ivan( ).
     " MESSAGE  e895            WITH  text-093.
   ENDIF.
 
@@ -679,7 +699,7 @@ AT SELECTION-SCREEN.
 *   process warning M7 392                                  "n497992
   IF NOT nosto IS INITIAL.                                  "n497992
 *   emerge warning ?                                        "n497992
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'ME_CHECK_T160M'             "n497992
 *      EXPORTING                                         "n497992
 *        i_arbgb = 'M7'                         "n497992
@@ -688,7 +708,19 @@ AT SELECTION-SCREEN.
 *        nothing = 0                            "n497992
 *        OTHERS  = 1.                           "n497992
 *                                                            "n497992
-    IF sy-subrc <> 0.                                       "n497992
+
+    TRY.
+        DATA(lo_fm_t160m_handler) = NEW zcl_mb5b_fm_t160m_01( iv_fm_name = 'ME_CHECK_T160M' ).
+        lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~set_input( iv_arbgb = 'M7' iv_msgnr = '392' ).
+        lo_fm_t160m_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~get_results(  IMPORTING ev_subrc = DATA(lv_subrc) ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  lv_subrc.
+    ENDTRY.
+
+
+    "IF sy-subrc <> 0.                                       "n497992
+    IF lv_subrc <> 0.
       SET CURSOR               FIELD  'NOSTO'.              "n497992
 *       to surpress the reversal movements could cause ...  "n497992
       "MESSAGE                  w392.                        "n497992
@@ -837,6 +869,32 @@ AT SELECTION-SCREEN OUTPUT.                                 "n599218
 *----------------------------------------------------------------------*
 
 START-OF-SELECTION.
+  IF matnr IS NOT INITIAL.
+    INSERT matnr INTO TABLE matnr[].
+  ENDIF.
+  IF mfrpn IS NOT INITIAL.
+    INSERT mfrpn INTO TABLE mfrpn[].
+  ENDIF.
+  IF bukrs IS NOT INITIAL.
+    INSERT bukrs INTO TABLE bukrs[].
+  ENDIF.
+  IF hkont IS NOT INITIAL.
+    INSERT hkont INTO TABLE hkont[].
+  ENDIF.
+  IF werks IS NOT INITIAL.
+    INSERT werks INTO TABLE werks[].
+  ENDIF.
+  IF lgort IS NOT INITIAL.
+    INSERT lgort INTO TABLE lgort[].
+  ENDIF.
+  IF bwtar IS NOT INITIAL.
+    INSERT bwtar INTO TABLE bwtar[].
+  ENDIF.
+  IF bwart IS NOT INITIAL.
+    INSERT bwart INTO TABLE bwart[].
+  ENDIF.
+
+
 
 * NEW DB                                             "v hana_20120802
   zcl_todo_list=>ivan( ).
@@ -2574,7 +2632,7 @@ ENDFORM.                     " alv_hierseq_list_totals
 FORM eingaben_pruefen.
 
 * check the entries only in releases >= 46B
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'MMIM_ENTRYCHECK_MAIN'
 *    TABLES
 *      it_matnr = matnr
@@ -2582,6 +2640,18 @@ FORM eingaben_pruefen.
 *      it_lgort = lgort
 *      it_bwart = bwart
 *      it_bukrs = bukrs.
+
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_mm_check_01( iv_fm_name = 'MMIM_ENTRYCHECK_MAIN' ).
+      lo_fm_handler->zif_mb5b_fm_mm_check_01~set_input( EXPORTING ir_matnr = matnr[] ir_werks = werks[]
+                                                                                                         ir_lgort = lgort[] ir_bwart = bwart[] ir_bukrs  = bukrs[] ).
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_mm_check_01~get_results(  IMPORTING er_matnr = matnr[] er_werks = werks[]
+                                                                                                         er_lgort = lgort[] er_bwart = bwart[] er_bukrs  = bukrs[] ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
 
 *  Die Selektionseingaben Buchungskreis und Werk werden hierarchisch
 *  verstanden, d.h. es werden nur Werke innerhalb der angegebenen
@@ -2619,12 +2689,10 @@ FORM eingaben_pruefen.
   ENDIF.                                                    "838360_^
 
   IF sbbst = 'X' AND sobkz IS INITIAL.
-    zcl_todo_list=>ivan( ).
     "MESSAGE e286.
 *   Bitte ein Sonderbestandskennzeichen eingeben.
   ELSEIF sbbst = ' ' AND NOT sobkz IS INITIAL.
     CLEAR sobkz.
-    zcl_todo_list=>ivan( ).
     "MESSAGE w287.
 *   Sonderbestandskennzeichen wird zurückgesetzt.
   ENDIF.
@@ -2646,13 +2714,11 @@ FORM eingaben_pruefen.
   IF bwbst = 'X' AND NOT charg IS INITIAL
     OR bwbst = 'X' AND NOT xchar IS INITIAL.
     CLEAR charg. REFRESH charg.
-    zcl_todo_list=>ivan( ).
     "MESSAGE w285.
 *   Charge wird zurückgesetzt.
   ENDIF.
   IF bwbst = 'X' AND NOT lgort IS INITIAL.
     CLEAR lgort. REFRESH lgort.
-    zcl_todo_list=>ivan( ).
     "MESSAGE w284.
 *   Lagerort wird zurückgesetzt.
   ENDIF.
@@ -2688,7 +2754,6 @@ FORM eingaben_pruefen.
     ELSE.
       SET CURSOR             FIELD  'SOBKZ'.
 *     Sonderbestandskennzeichen nicht vorhanden
-      zcl_todo_list=>ivan( ).
       " MESSAGE                e221.
     ENDIF.
     " END-ENHANCEMENT-SECTION.
@@ -2696,13 +2761,11 @@ FORM eingaben_pruefen.
 
   IF bwbst = 'X' AND NOT bwart IS INITIAL.
     CLEAR bwart. REFRESH bwart.
-    zcl_todo_list=>ivan( ).
     "MESSAGE w298.
 *   Bewegungsart wird zurückgesetzt
   ENDIF.
   IF bwbst = ' ' AND NOT bwtar IS INITIAL.
     CLEAR bwtar. REFRESH bwtar.
-    zcl_todo_list=>ivan( ).
     "MESSAGE w288.
 *   Bewertungsart wird zurückgesetzt.
   ENDIF.
@@ -2711,13 +2774,11 @@ FORM eingaben_pruefen.
     IF bwbst = ' '.
 *     G/L account will be reset, if stock type is not Valuated Stock
       CLEAR hkont. REFRESH hkont.
-      zcl_todo_list=>ivan( ).
       "MESSAGE w481.
     ELSE.
 *     Company code or plant should be filled to build G_T_ORGAN table
       IF bukrs[] IS INITIAL AND werks[] IS INITIAL.
         SET CURSOR FIELD 'HKONT-LOW'.
-        zcl_todo_list=>ivan( ).
         "MESSAGE e480.
       ENDIF.
     ENDIF.
@@ -2746,7 +2807,7 @@ FORM eingaben_pruefen.
     IF  NOT alv_default_variant  IS INITIAL.                "n599218
 *     but the SAP-LIST-VIEWER will apply the existing       "n599218
 *     initial display variant / emerge warning 393 ?        "n599218
-      zcl_todo_list=>replace_fm( ).
+*      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'ME_CHECK_T160M'               "n599218
 *        EXPORTING                                           "n599218
 *          i_arbgb = 'M7'                         "n599218
@@ -2755,7 +2816,19 @@ FORM eingaben_pruefen.
 *          nothing = 0                            "n599218
 *          OTHERS  = 1.                           "n599218
                                                             "n599218
-      IF sy-subrc <> 0.                                     "n599218
+
+      TRY.
+          DATA(lo_fm_t160m_handler) = NEW zcl_mb5b_fm_t160m_01( iv_fm_name = 'ME_CHECK_T160M' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~set_input( iv_arbgb = 'M7' iv_msgnr = '393' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_base~process( ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~get_results(  IMPORTING ev_subrc = DATA(lv_subrc) ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  lv_subrc.
+      ENDTRY.
+
+
+*      IF sy-subrc <> 0.                                     "n599218
+      IF lv_subrc <> 0.                                     "n599218
 *       list will be created using the initial layout &     "n599218
         MESSAGE w393(m7)     WITH  alv_default_variant.     "n599218
       ENDIF.                                                "n599218
@@ -2795,7 +2868,7 @@ FORM variant_check_existence
     IF  NOT ls_vari_def-variant  IS INITIAL.
 *     but the SAP-LIST-VIEWER will apply the existing       "n599218
 *     initial display variant / emerge warning 393 ?        "n599218
-      zcl_todo_list=>replace_fm( ).
+*      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'ME_CHECK_T160M'               "n599218
 *        EXPORTING                                           "n599218
 *          i_arbgb = 'M7'                         "n599218
@@ -2804,7 +2877,18 @@ FORM variant_check_existence
 *          nothing = 0                            "n599218
 *          OTHERS  = 1.                           "n599218
                                                             "n599218
-      IF sy-subrc <> 0.                                     "n599218
+      TRY.
+          DATA(lo_fm_t160m_handler) = NEW zcl_mb5b_fm_t160m_01( iv_fm_name = 'ME_CHECK_T160M' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~set_input( iv_arbgb = 'M7' iv_msgnr = '393' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_base~process( ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~get_results(  IMPORTING ev_subrc = DATA(lv_subrc) ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  lv_subrc.
+      ENDTRY.
+
+
+*      IF sy-subrc <> 0.                                     "n599218
+      IF lv_subrc <> 0.                                     "n599218
 *       list will be created using the initial layout &     "n599218
         MESSAGE w393(m7)     WITH  ls_vari_def-variant.     "n599218
       ENDIF.                                                "n599218
@@ -3126,7 +3210,7 @@ FORM  bewegungsarten_lesen.
   LOOP AT k2.
     REFRESH t_st156s.
 
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'MB_CONTROL_MOVETYPE_GET'
 *      EXPORTING
 *        i_bwart              = k2-bwart
@@ -3137,7 +3221,19 @@ FORM  bewegungsarten_lesen.
 *        no_entries_found     = 2
 *        OTHERS               = 3.
 
-    IF sy-subrc = 0.                                        "311588
+
+    TRY.
+        DATA(lo_fm_handler) = NEW zcl_mb5b_fm_mb_control_01( iv_fm_name = 'MB_CONTROL_MOVETYPE_GET' ).
+        lo_fm_handler->zif_mb5b_fm_mb_control_01~set_input( EXPORTING iv_bwart = k2-bwart it_s156s =   t_st156s[] ).
+        lo_fm_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_handler->zif_mb5b_fm_mb_control_01~get_results(  IMPORTING et_s156s =   t_st156s[]
+                                                                                                                                    ev_subrc = DATA(lv_subrc) ).
+      CATCH zcx_process_mb5b_select.
+
+    ENDTRY.
+
+    "IF sy-subrc = 0.                                        "311588
+    IF lv_subrc = 0.
       LOOP AT t_st156s.
         MOVE-CORRESPONDING t_st156s TO it156.
         APPEND it156.
@@ -5027,7 +5123,7 @@ FORM check_is_oil_system.                                   "n599218 A
   CLEAR : g_flag_is_oil_active, g_cnt_is_oil.               "n599218 A
                                                             "n599218 A
 * does database OI001 exist in this system ?                "n599218 A
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'DDIF_NAMETAB_GET'                         "n599218 A
 *    EXPORTING                                               "n599218 A
 *      tabname   = g_f_dcobjdef_name                 "n599218 A
@@ -5035,13 +5131,24 @@ FORM check_is_oil_system.                                   "n599218 A
 *      x031l_tab = g_t_x031l                         "n599218 A
 *    EXCEPTIONS                                              "n599218 A
 *      OTHERS    = 1.                                "n599218 A
+
+
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_nametab_get_01( iv_fm_name = 'DDIF_NAMETAB_GET' ).
+      lo_fm_handler->zif_mb5b_fm_nametab_get_01~set_input( EXPORTING iv_tabname = g_f_dcobjdef_name it_x031l =  g_t_x031l  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_nametab_get_01~get_results(  IMPORTING et_x031l =  g_t_x031l ev_subrc = DATA(lv_subrc) ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
                                                             "n599218 A
-  CHECK sy-subrc IS INITIAL.      "OI001 is available ?     "n599218 A
+  CHECK lv_subrc IS INITIAL.      "OI001 is available ?     "n599218 A
                                                             "n599218 A
 * check definition of MM document item MSEG                 "n599218 A
   MOVE  'MSEG'               TO  g_f_dcobjdef_name.         "n599218 A
                                                             "n599218 A
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'DDIF_NAMETAB_GET'                          "n599218 A
 *    EXPORTING                                               "n599218 A
 *      tabname   = g_f_dcobjdef_name                 "n599218 A
@@ -5050,7 +5157,17 @@ FORM check_is_oil_system.                                   "n599218 A
 *    EXCEPTIONS                                              "n599218 A
 *      OTHERS    = 1.                                "n599218 A
                                                             "n599218 A
-  CHECK sy-subrc IS INITIAL.      "structure MSEG found     "n599218 A
+
+  TRY.
+      lo_fm_handler = NEW zcl_mb5b_fm_nametab_get_01( iv_fm_name = 'DDIF_NAMETAB_GET' ).
+      lo_fm_handler->zif_mb5b_fm_nametab_get_01~set_input( EXPORTING iv_tabname = g_f_dcobjdef_name it_x031l =  g_t_x031l  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_nametab_get_01~get_results(  IMPORTING et_x031l =  g_t_x031l ev_subrc = lv_subrc ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  CHECK lv_subrc IS INITIAL.      "structure MSEG found     "n599218 A
                                                             "n599218 A
 * check whether the IS-OIL specific fields are available    "n599218 A
   LOOP AT g_t_x031l          INTO  g_s_x031l.               "n599218 A

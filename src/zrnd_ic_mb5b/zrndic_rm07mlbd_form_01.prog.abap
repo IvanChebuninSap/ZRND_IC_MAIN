@@ -95,10 +95,19 @@ FORM initialisierung.
     MOVE  'X'                TO  pa_dbstd.                  "n921165
     CLEAR :                  pa_dbmat, pa_dbdat.            "n921165
   ENDIF.                                                    "n921165
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'MB_CHECK_MSEG_CONVERSION_DONE'             "n1558298
 *    IMPORTING                                               "n1558298
 *      e_conversion_done = g_f_msegex_act.             "n1558298
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'MB_CHECK_MSEG_CONVERSION_DONE' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = c_hdb_dbcon_get  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc) ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
 
 ENDFORM.                               " INITIALISIERUNG
 
@@ -1456,7 +1465,7 @@ FORM tabellen_lesen.
         NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'MARA_01'
                                                                                                                                                    it_select_opt = lt_prop_sel_opt
                                                                                                                                                    iv_db_connection = CONV #( dbcon )
-                                                                                                                                                     )->process( IMPORTING et_output = imara ).
+                                                                                                                                                     )->process( IMPORTING et_output = imara[] ).
       CATCH zcx_process_mb5b_select.
         CLEAR  imara.
     ENDTRY.
@@ -1528,7 +1537,7 @@ FORM tabellen_lesen.
         NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'T134M_01'
                                                                                                                                                    it_select_opt = lt_prop_sel_opt
                                                                                                                                                    iv_db_connection = ''
-                                                                                                                                                     )->process( IMPORTING et_output = it134m ).
+                                                                                                                                                     )->process( IMPORTING et_output = it134m[] ).
       CATCH zcx_process_mb5b_select.
         CLEAR  it134m.
     ENDTRY.
@@ -1562,7 +1571,7 @@ FORM tabellen_lesen.
                                                                                                                                                        iv_structure_name = 'ZT156W'
                                                                                                                                                        iv_table_name = 'T156W'
                                                                                                                                                        iv_where_clause =  lv_where_cond
-                                                                                                                            IMPORTING et_output = it156w  ).
+                                                                                                                            IMPORTING et_output = it156w[]  ).
 
 
   SORT it156w BY bustw xbgbb.
@@ -1649,10 +1658,6 @@ FORM fi_belege_lesen.
   DATA lt_sel_opt TYPE /iwbep/t_cod_select_options.
   MOVE-CORRESPONDING matnr[] TO lt_sel_opt.
   INSERT VALUE /iwbep/s_mgw_select_option( property = 'MATNR' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
-  CLEAR lt_sel_opt.
-
-  MOVE-CORRESPONDING g_ra_bwkey[] TO lt_sel_opt.
-  INSERT VALUE /iwbep/s_mgw_select_option( property = 'BWKEY' select_options = lt_sel_opt  ) INTO TABLE lt_prop_sel_opt.
   CLEAR lt_sel_opt.
 
   INSERT VALUE #( low = datum-low ) INTO TABLE lt_sel_opt.
@@ -1875,7 +1880,7 @@ FORM belege_ergaenzen.                         "Version from note 204872
 *   save result from database selection into global hashed  "n856424
 *   table g_t_bkpf                                          "n856424
     PERFORM hdb_check_table USING 'BKPF' ''.                "n1710850
-    zcl_todo_list=>replace_select( ).
+*    zcl_todo_list=>replace_select( ).
 *    SELECT  *                 FROM bkpf CONNECTION (dbcon)  "n1710850
 *      INTO CORRESPONDING FIELDS OF TABLE g_t_bkpf           "n856424
 *           FOR ALL ENTRIES IN g_t_bkpf_key
@@ -1895,8 +1900,12 @@ FORM belege_ergaenzen.                         "Version from note 204872
       <ls_add_table_content>-row_id = lv_tabix.
       <ls_add_table_content>-field_name = 'BUKRS'.
       <ls_add_table_content>-field_value = <ls_bkpf>-bukrs.
+      INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+      <ls_add_table_content>-row_id = lv_tabix.
       <ls_add_table_content>-field_name = 'BELNR'.
       <ls_add_table_content>-field_value = <ls_bkpf>-belnr.
+      INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+      <ls_add_table_content>-row_id = lv_tabix.
       <ls_add_table_content>-field_name = 'GJAHR'.
       <ls_add_table_content>-field_value = <ls_bkpf>-gjahr.
     ENDLOOP.
@@ -2168,7 +2177,7 @@ FORM belege_ergaenzen.                         "Version from note 204872
 
 *   save result from database selection into hashed table
     IF NOT g_t_bseg_key[] IS INITIAL.
-      zcl_todo_list=>replace_select( ).
+*      zcl_todo_list=>replace_select( ).
 *      SELECT bukrs belnr gjahr buzei hkont FROM bseg
 *        INTO CORRESPONDING FIELDS OF TABLE g_t_bseg
 *        FOR ALL ENTRIES IN g_t_bseg_key
@@ -2177,6 +2186,43 @@ FORM belege_ergaenzen.                         "Version from note 204872
 *            AND gjahr = g_t_bseg_key-gjahr
 *            AND buzei = g_t_bseg_key-buzei
 *        ORDER BY PRIMARY KEY.
+
+      CLEAR lt_add_table_content.
+      CLEAR lt_add_table.
+
+      LOOP AT  g_t_bseg_key ASSIGNING FIELD-SYMBOL(<ls_bseg_key>).
+        lv_tabix = sy-tabix.
+        INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+        <ls_add_table_content>-row_id = lv_tabix.
+        <ls_add_table_content>-field_name = 'BUKRS'.
+        <ls_add_table_content>-field_value = <ls_bseg_key>-bukrs.
+        INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+        <ls_add_table_content>-row_id = lv_tabix.
+        <ls_add_table_content>-field_name = 'BELNR'.
+        <ls_add_table_content>-field_value = <ls_bseg_key>-belnr.
+        INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+        <ls_add_table_content>-row_id = lv_tabix.
+        <ls_add_table_content>-field_name = 'GJAHR'.
+        <ls_add_table_content>-field_value = <ls_bseg_key>-gjahr.
+        INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+        <ls_add_table_content>-row_id = lv_tabix.
+        <ls_add_table_content>-field_name = 'BUZEI'.
+        <ls_add_table_content>-field_value = <ls_bseg_key>-buzei.
+      ENDLOOP.
+
+      INSERT VALUE #( table_name = 'BSEG_KEY' addtablecontent = lt_add_table_content ) INTO TABLE lt_add_table.
+
+
+
+      TRY.
+          NEW zcl_mb5b_select_factory(  )->get_instance(  EXPORTING iv_select_name = 'BSEG_01'
+                                                                                                                                                     it_add_table = lt_add_table
+                                                                                                                                                     iv_db_connection = CONV #( dbcon )
+                                                                                                                                                       )->process( IMPORTING et_output = g_t_bseg ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  g_t_bseg.
+      ENDTRY.
+
     ENDIF.
 
     LOOP AT g_t_mseg_lean ASSIGNING <fs_mseg_lean>.
@@ -3093,11 +3139,11 @@ FORM listausgabe.
     DATA: lt_sort TYPE kkblo_t_sortinfo.                    "n890109
                                                             "n890109
     zcl_todo_list=>ivan( ). "this seem to operate on internal variable
-*    CALL FUNCTION 'K_KKB_SUMLEVEL_OF_LIST_GET'              "n890109
-*      IMPORTING                                             "n890109
-*        e_sumlevel = l_level                      "n890109
-*      EXCEPTIONS                                            "n890109
-*        OTHERS     = 1.                           "n890109
+    CALL FUNCTION 'K_KKB_SUMLEVEL_OF_LIST_GET'              "n890109
+      IMPORTING                                             "n890109
+        e_sumlevel = l_level                      "n890109
+      EXCEPTIONS                                            "n890109
+        OTHERS     = 1.                           "n890109
                                                             "n890109
     IF  NOT sy-subrc IS INITIAL.                            "n890109
       MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno     "n890109
@@ -3111,16 +3157,27 @@ FORM listausgabe.
         IMPORTING                                           "n890109
           et_sort = lt_sort[].                   "n890109
                                                             "n890109
-      zcl_todo_list=>replace_fm( ).
-*      CALL FUNCTION 'K_KKB_SUMLEVEL_SELECT'                 "n890109
-*        EXPORTING                                           "n890109
-*          i_no_dialog = 'X'                          "n890109
-*          i_sumlevel  = l_level                      "n890109
-*        CHANGING                                            "n890109
-*          ct_sort     = lt_sort[]                    "n890109
-*        EXCEPTIONS                                          "n890109
-*          OTHERS      = 1.                           "n890109
-                                                            "n890109
+*      zcl_todo_list=>replace_fm( ).  "this seem to operate on internal variable
+      CALL FUNCTION 'K_KKB_SUMLEVEL_SELECT'                 "n890109
+        EXPORTING                                           "n890109
+          i_no_dialog = 'X'                          "n890109
+          i_sumlevel  = l_level                      "n890109
+        CHANGING                                            "n890109
+          ct_sort     = lt_sort[]                    "n890109
+        EXCEPTIONS                                          "n890109
+          OTHERS      = 1.                           "n890109
+*                                                            "n890109
+
+      TRY.
+          DATA(lo_fm_handler) = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+          lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = c_hdb_dbcon_get  ) .
+          lo_fm_handler->zif_mb5b_fm_base~process( ).
+          lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc) ).
+        CATCH zcx_process_mb5b_select.
+
+      ENDTRY.
+
+
       IF  NOT sy-subrc IS INITIAL.                          "n890109
         MESSAGE ID sy-msgid TYPE  sy-msgty NUMBER sy-msgno  "n890109
             WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.       "n890109
@@ -4007,7 +4064,7 @@ FORM get_acc_det  CHANGING cs_accdet  TYPE stype_accdet.
   IF sy-subrc = 0.
     cs_accdet-hkont = ls_acc-hkont.
   ELSE.
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'MR_ACCOUNT_ASSIGNMENT'
 *      EXPORTING
 *        bewertungsklasse       = cs_accdet-bklas
@@ -4019,7 +4076,23 @@ FORM get_acc_det  CHANGING cs_accdet  TYPE stype_accdet.
 *        konto                  = cs_accdet-hkont
 *      EXCEPTIONS
 *        OTHERS                 = 5.
-    IF sy-subrc <> 0.
+
+    TRY.
+        DATA(lo_fm_handler) = NEW zcl_mb5b_fm_acc_assign_01( iv_fm_name = 'MR_ACCOUNT_ASSIGNMENT' ).
+        lo_fm_handler->zif_mb5b_fm_acc_assign_01~set_input( EXPORTING iv_bklas = cs_accdet-bklas
+                                                                                                                               iv_bwmod =  cs_accdet-bwmod
+                                                                                                                               iv_ktopl = cs_accdet-ktopl
+                                                                                                                               iv_shkzg = 'S'
+                                                                                                                               iv_ktosl = 'BSX' ) .
+        lo_fm_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_handler->zif_mb5b_fm_acc_assign_01~get_results(  IMPORTING ev_konto =  cs_accdet-hkont ev_subrc = DATA(lv_subrc) ).
+      CATCH zcx_process_mb5b_select.
+
+    ENDTRY.
+
+
+    "IF sy-subrc <> 0.
+    IF lv_subrc <> 0.
       CLEAR cs_accdet-hkont.
     ENDIF.
     ls_acc-bklas = cs_accdet-bklas.
@@ -4210,7 +4283,7 @@ FORM hdb_check_table  USING                                 "n1710850
     APPEND lv_tab2 TO lt_chk_tab.
   ENDIF.
 
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION c_hdb_dbcon_get
 *    EXPORTING
 *      i_subappl  = c_hdb_subappl
@@ -4218,5 +4291,15 @@ FORM hdb_check_table  USING                                 "n1710850
 *      it_req_tab = lt_chk_tab
 *    IMPORTING
 *      e_dbcon    = dbcon.
+
+  TRY.
+      DATA(lo_fm_handler2) = NEW zcl_mb5b_fm_dbcon_get_01( iv_fm_name = 'MM_HDB_DBCON_GET' ).
+      lo_fm_handler2->zif_mb5b_fm_dbcon_get_01~set_input( EXPORTING iv_subappl = c_hdb_subappl it_req_tab = lt_chk_tab  ) .
+      lo_fm_handler2->zif_mb5b_fm_base~process( ).
+      lo_fm_handler2->zif_mb5b_fm_dbcon_get_01~get_results(  IMPORTING  ev_dbcon = dbcon ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
 
 ENDFORM.                                                    "n1710850

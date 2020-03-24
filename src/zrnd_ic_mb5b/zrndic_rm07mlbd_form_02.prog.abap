@@ -430,15 +430,35 @@ FORM f0000_create_table_g_t_organ
       CLEAR  lt_t001w_all.
   ENDTRY.
 
-  LOOP AT lt_t001w_all  INTO zt001w.
+  LOOP AT lt_t001w_all  INTO DATA(ls_zt001w).
+
+
+*   read the valuation area
+*    SELECT SINGLE * FROM t001k
+*                             WHERE  bwkey  =  t001w-bwkey.
+
+    DATA ls_zt001k TYPE zt001k.
+    DATA(lv_where_cond) = |BWKEY = `| && ls_zt001w-bwkey && |`|.
+    NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'BWKEY BWMOD XVKBW BUKRS'
+                                                                                                                                                  iv_structure_name = 'ZT001K'
+                                                                                                                                                  iv_table_name = 'T001K'
+                                                                                                                                                  iv_where_clause = CONV #( lv_where_cond )
+                                                                                                                              IMPORTING es_output = ls_zt001k ).
+
+    CHECK ls_zt001k IS NOT INITIAL.
+
+    "CHECK : sy-subrc IS INITIAL.       "entry found ?
+
+
+
 *   company code is required ?
-    CHECK : zt001k-bukrs IN g_0000_ra_bukrs.
+    CHECK : ls_zt001k-bukrs IN g_0000_ra_bukrs.
 
 *    zcl_todo_list=>replace_select( ).
 *    SELECT SINGLE * FROM t001  WHERE  bukrs  =  t001k-bukrs.
 
     DATA ls_zt001 TYPE zt001.
-    DATA(lv_where_cond) = |BUKRS = `| && zt001k-bukrs && |`|.
+    lv_where_cond = |BUKRS = `| && ls_zt001k-bukrs && |`|.
     NEW zcl_rndic_call_select( )->zif_call_odata_sel_single~call_single_select(  EXPORTING iv_field_list = 'BUKRS BUTXT ORT01 LAND1 WAERS KTOPL'
                                                                                                                                                   iv_structure_name = 'ZT001'
                                                                                                                                                   iv_table_name = 'T001'
@@ -452,18 +472,18 @@ FORM f0000_create_table_g_t_organ
     MOVE-CORRESPONDING ls_zt001 TO zt001.
 
 
-    PERFORM  f9000_auth_plant_check    USING  zt001w-werks.
+    PERFORM  f9000_auth_plant_check    USING  ls_zt001w-werks.
 
 *   go on if the user has authority for this plant
     CHECK : g_flag_authority = 'X'.
 * END OF CHANGE for note 1049935                           "n1049935
 
 *   create table g_t_organ_lean
-    MOVE : zt001w-werks       TO  g_s_organ-werks,
-           zt001w-bwkey       TO  g_s_organ-bwkey,
+    MOVE : ls_zt001w-werks       TO  g_s_organ-werks,
+           ls_zt001w-bwkey       TO  g_s_organ-bwkey,
            zt001-bukrs        TO  g_s_organ-bukrs,
            zt001-ktopl        TO  g_s_organ-ktopl,
-           zt001k-bwmod       TO  g_s_organ-bwmod,
+           ls_zt001k-bwmod       TO  g_s_organ-bwmod,
            zt001-waers        TO  g_s_organ-waers.
 
 *   write 2 entries for the both search methods _
@@ -481,13 +501,13 @@ FORM f0000_create_table_g_t_organ
     CLEAR                    g_s_organ.
 
 *   create the range tables for plants
-    MOVE : zt001w-werks       TO  g_ra_werks-low,
+    MOVE : ls_zt001w-werks       TO  g_ra_werks-low,
            'I'               TO  g_ra_werks-sign,
            'EQ'              TO  g_ra_werks-option.
     APPEND                   g_ra_werks.
 
 *   create the range tables for plants and valuation areas
-    MOVE : zt001k-bwkey       TO  g_ra_bwkey-low,
+    MOVE : ls_zt001k-bwkey       TO  g_ra_bwkey-low,
            'I'               TO  g_ra_bwkey-sign,
            'EQ'              TO  g_ra_bwkey-option.
     APPEND                   g_ra_bwkey.
@@ -698,7 +718,7 @@ FORM f0800_check_restrictions.                              "n547170
 
     IF archive = 'X'.                                       "n1481757
 *       emerge warning ?                                    "n1481757
-      zcl_todo_list=>replace_fm( ).
+*      zcl_todo_list=>replace_fm( ).
 *           CALL FUNCTION 'ME_CHECK_T160M'                   "n1481757
 *            EXPORTING                                       "n1481757
 *              I_ARBGB          = 'M7'                       "n1481757
@@ -711,7 +731,17 @@ FORM f0800_check_restrictions.                              "n547170
 *               POPUP            = 5                         "n1481757
 *               INFORMATION      = 6.                        "n1481757
                                                             "n1481757
-      CASE sy-subrc.                                        "n1481757
+      TRY.
+          DATA(lo_fm_t160m_handler) = NEW zcl_mb5b_fm_t160m_01( iv_fm_name = 'ME_CHECK_T160M' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~set_input( iv_arbgb = 'M7' iv_msgnr = '449' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_base~process( ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~get_results(  IMPORTING ev_subrc = DATA(lv_subrc) ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  lv_subrc.
+      ENDTRY.
+
+      "CASE sy-subrc.                                        "n1481757
+      CASE lv_subrc.
         WHEN 1.                                             "n1481757
           " MESSAGE e449.                                 "n1481757
 * Kombination bewerteter Bestand und Lesen Archiv kann      "n1481757
@@ -814,7 +844,7 @@ FORM f0800_check_restrictions.                              "n547170
 *   an error was detected
     IF  l_flag_m7390 = 'X'.
 *       emerge warning ?                                    "n497992
-      zcl_todo_list=>replace_fm( ).
+*      zcl_todo_list=>replace_fm( ).
 *      CALL FUNCTION 'ME_CHECK_T160M'                        "n497992
 *        EXPORTING                                           "n497992
 *          i_arbgb          = 'M7'                           "n497992
@@ -823,7 +853,16 @@ FORM f0800_check_restrictions.                              "n547170
 *          nothing          = 0                              "n497992
 *          OTHERS           = 1.                             "n497992
                                                             "n497992
-      IF sy-subrc <> 0.                                     "n497992
+      TRY.
+          lo_fm_t160m_handler = NEW zcl_mb5b_fm_t160m_01( iv_fm_name = 'ME_CHECK_T160M' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~set_input( iv_arbgb = 'M7' iv_msgnr = '390' ).
+          lo_fm_t160m_handler->zif_mb5b_fm_base~process( ).
+          lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~get_results(  IMPORTING ev_subrc = lv_subrc ).
+        CATCH zcx_process_mb5b_select.
+          CLEAR  lv_subrc.
+      ENDTRY.
+      "  IF sy-subrc <> 0.                                     "n497992
+      IF lv_subrc <> 0.
 *         FI summarization active / results could be wrong  "n497992
         " MESSAGE            w390.                            "n497992
       ENDIF.                                                "n497992
@@ -834,7 +873,7 @@ FORM f0800_check_restrictions.                              "n547170
 *   warning M7 391                                          "n497992
   IF NOT bwart[] IS INITIAL.                                "n497992
 *   emerge warning ?                                        "n497992
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION            'ME_CHECK_T160M'               "n497992
 *          EXPORTING                                         "n497992
 *            i_arbgb          = 'M7'                         "n497992
@@ -843,7 +882,16 @@ FORM f0800_check_restrictions.                              "n547170
 *            nothing          = 0                            "n497992
 *            OTHERS           = 1.                           "n497992
                                                             "n497992
-    IF sy-subrc <> 0.                                       "n497992
+    TRY.
+        lo_fm_t160m_handler = NEW zcl_mb5b_fm_t160m_01( iv_fm_name = 'ME_CHECK_T160M' ).
+        lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~set_input( iv_arbgb = 'M7' iv_msgnr = '391' ).
+        lo_fm_t160m_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_t160m_handler->zif_mb5b_fm_t160m_01~get_results(  IMPORTING ev_subrc = lv_subrc ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  lv_subrc.
+    ENDTRY.
+    "IF sy-subrc <> 0.                                       "n497992
+    IF lv_subrc <> 0.
       SET CURSOR             FIELD  'BWART_LOW'.            "n497992
 *     to restric the mov.type could cause wrong results     "n497992
       " MESSAGE                w391.                          "n497992
@@ -1375,8 +1423,14 @@ FORM f1000_select_mseg_mkpf.
           <ls_add_table_content>-row_id = lv_tabix.
           <ls_add_table_content>-field_name = 'MBLNR'.
           <ls_add_table_content>-field_value = <ls_mseg_key>-mblnr.
+
+          INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+          <ls_add_table_content>-row_id = lv_tabix.
           <ls_add_table_content>-field_name = 'MJAHR'.
           <ls_add_table_content>-field_value = <ls_mseg_key>-mjahr.
+
+          INSERT INITIAL LINE INTO TABLE lt_add_table_content ASSIGNING <ls_add_table_content>.
+          <ls_add_table_content>-row_id = lv_tabix.
           <ls_add_table_content>-field_name = 'ZEILE'.
           <ls_add_table_content>-field_value = <ls_mseg_key>-zeile.
         ENDLOOP.
@@ -1629,9 +1683,10 @@ FORM f9000_auth_plant_check
     MOVE  g_t_auth_plant-ok            TO  g_flag_authority.
   ELSE.
 *   new plant / do the authority check / save result in buffer table
-    AUTHORITY-CHECK OBJECT 'M_MSEG_WMB'
-                    ID 'ACTVT' FIELD actvt03
-                    ID 'WERKS' FIELD  l_f_werks.
+    zcl_todo_list=>ivan( ). "authority checks
+*    AUTHORITY-CHECK OBJECT 'M_MSEG_WMB'
+*                    ID 'ACTVT' FIELD actvt03
+*                    ID 'WERKS' FIELD  l_f_werks.
 
     IF  sy-subrc IS INITIAL.
       MOVE : 'X'             TO  g_t_auth_plant-ok,
@@ -1817,7 +1872,7 @@ FORM tpc_check_tax_auditor.                                 "n547170
                                                             "n547170
 * - the function module FI_CHECK_DATE of note 486477 will   "n547170
 *   be processed when it exists                             "n547170
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n547170
 *    EXPORTING                                               "n547170
 *      funcname               = 'FI_CHECK_DATE'              "n547170
@@ -1825,14 +1880,24 @@ FORM tpc_check_tax_auditor.                                 "n547170
 *      function_not_exist     = 1                            "n547170
 *      OTHERS                 = 2.                           "n547170
                                                             "n547170
-  IF sy-subrc IS INITIAL.                                   "n547170
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = 'FI_CHECK_DATE'  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc) ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  "IF sy-subrc IS INITIAL.                                   "n547170
+  IF lv_subrc IS INITIAL.
 *   the function module FI_CHECK_DATE exists -> go on       "n547170
                                                             "n547170
 *   separate time depending authorization for tax auditor   "n547170
 *   first step : check, whether the user is a tax auditor   "n547170
     MOVE  sy-repid             TO  g_f_repid.               "n486477
                                                             "n486477
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'FI_CHECK_DATE'                           "n486477
 *      EXPORTING                                             "n486477
 *        i_bukrs           = space                           "n486477
@@ -1845,8 +1910,20 @@ FORM tpc_check_tax_auditor.                                 "n547170
 *        no_authority_date = 2                               "n486477
 *        wrong_parameter   = 3                               "n486477
 *        OTHERS            = 4.                              "n486477
+
+
+    TRY.
+        DATA(lo_fm_fi_chk_date_handler) = NEW zcl_mb5b_fm_fi_chk_date_01( iv_fm_name = 'FI_CHECK_DATE' ).
+        lo_fm_fi_chk_date_handler->zif_mb5b_fm_fi_chk_date_01~set_input( iv_bukrs = space iv_repid = g_f_repid  iv_uname = sy-uname ).
+        lo_fm_fi_chk_date_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_fi_chk_date_handler->zif_mb5b_fm_fi_chk_date_01~get_results(  IMPORTING ev_subrc = lv_subrc ev_tpcuser = g_flag_tpcuser ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  g_flag_tpcuser.
+    ENDTRY.
+
                                                             "n486477
-    CASE  sy-subrc.                                         "n486477
+    "CASE  sy-subrc.                                         "n486477
+    CASE lv_subrc.
       WHEN  0.                                              "n486477
 *       what kind of user : g_flag_tpcuser = 1 tax auditor  "n486477
 *                           g_flag_tpcuser = 4 other other  "n486477
@@ -1935,7 +2012,7 @@ FORM tpc_check_date_for_all_cc.                             "n486477
 * check the selected company codes and the dates            "n486477
   LOOP AT g_t_bukrs          INTO  g_s_bukrs.               "n486477
 *   check the authorization for dates and company code      "n486477
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'FI_CHECK_DATE'                           "n486477
 *      EXPORTING                                             "n486477
 *        i_bukrs           = g_s_bukrs-bukrs                 "n486477
@@ -1948,6 +2025,22 @@ FORM tpc_check_date_for_all_cc.                             "n486477
 *        no_authority_date = 2                               "n486477
 *        wrong_parameter   = 3                               "n486477
 *        OTHERS            = 4.                              "n486477
+
+    TRY.
+        DATA(lo_fm_fi_chk_date_handler) = NEW zcl_mb5b_fm_fi_chk_date_01( iv_fm_name = 'FI_CHECK_DATE' ).
+        lo_fm_fi_chk_date_handler->zif_mb5b_fm_fi_chk_date_01~set_input( iv_bukrs = g_s_bukrs-bukrs
+                                                                                                                  iv_repid = g_f_repid
+                                                                                                                  iv_uname = sy-uname
+                                                                                                                  iv_from_date = datum-low
+                                                                                                                  iv_to_date = datum-high
+                                                                                                                   ).
+        lo_fm_fi_chk_date_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_fi_chk_date_handler->zif_mb5b_fm_fi_chk_date_01~get_results(  IMPORTING ev_subrc = lv_subrc ev_tpcuser = g_flag_tpcuser ).
+      CATCH zcx_process_mb5b_select.
+        CLEAR  g_flag_tpcuser.
+    ENDTRY.
+
+
                                                             "n486477
     CASE sy-subrc.                                          "n486477
       WHEN 0.                                               "n486477
@@ -2080,7 +2173,7 @@ ENDFORM.                     "tpc_check_get_all_cc          "n486477
 FORM tpc_write_log.                                         "n555246
                                                             "n555246
 * check whether the function module is available            "n555246
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n555246
 *    EXPORTING                                               "n555246
 *      funcname           = 'CA_WRITE_LOG'                   "n555246
@@ -2088,7 +2181,18 @@ FORM tpc_write_log.                                         "n555246
 *      function_not_exist = 1                                "n555246
 *      OTHERS             = 2.                               "n555246
                                                             "n555246
-  CHECK : sy-subrc IS INITIAL.                              "n555246
+
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = 'CA_WRITE_LOG'  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc) ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  CHECK : lv_subrc IS INITIAL.                              "n555246
+  "CHECK : sy-subrc IS INITIAL.                              "n555246
                                                             "n555246
 * write the entries of the selection screen into log file   "n555246
 *  zcl_todo_list=>replace_fm( ).
@@ -2144,7 +2248,7 @@ FORM process_archive_mm_doc .
     REFRESH : xmkpf, xmseg.                                 "n1481757
                                                             "n1481757
 
-    zcl_todo_list=>replace_fm( ).
+*    zcl_todo_list=>replace_fm( ).
 *    CALL FUNCTION 'ASH_MM_MATBEL_READ'                      "n1481757
 *      EXPORTING                                             "n1481757
 *        i_archivekey         =  g_s_as_key-archivekey       "n1481757
@@ -2157,8 +2261,24 @@ FORM process_archive_mm_doc .
 *        not_in_archive         = 2                          "n1481757
 *        no_instructure_defined = 3                          "n1481757
 *        OTHERS                 = 4.                         "n1481757
+
+    TRY.
+        DATA(lo_fm_handler) = NEW zcl_mb5b_fm_matbel_read( iv_fm_name = 'ASH_MM_MATBEL_READ' ).
+        lo_fm_handler->zif_mb5b_fm_matbel_read~set_input( EXPORTING iv_archivekey  = g_s_as_key-archivekey
+                                                                                                                             iv_offset =  g_s_as_key-archiveofs
+                                                                                                                             it_mkpf =   xmkpf[]
+                                                                                                                             it_mseg = xmseg[] ) .
+        lo_fm_handler->zif_mb5b_fm_base~process( ).
+        lo_fm_handler->zif_mb5b_fm_matbel_read~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc)
+                                                                                                                                  et_mkpf = xmkpf[]
+                                                                                                                                  et_mseg = xmseg[]  ).
+      CATCH zcx_process_mb5b_select.
+
+    ENDTRY.
+
                                                             "n1481757
-    CASE  sy-subrc.                                         "n1481757
+    "CASE  sy-subrc.                                         "n1481757
+    CASE  lv_subrc.                                         "n1481757
       WHEN  0.               " MM document found            "n1481757
                                                             "n1481757
       WHEN  1 OR 2.                                         "n1481757
@@ -2266,7 +2386,7 @@ FORM check_existence_as  USING    lv_g_flag_exist_as.
 * the SA archive will be not carried out                    "n1481757
   lv_g_flag_exist_as = ' '.                                 "n1481757
                                                             "n1481757
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n1481757
 *    EXPORTING                                               "n1481757
 *      funcname           = 'AS_API_INFOSTRUC_FIND'          "n1481757
@@ -2275,9 +2395,19 @@ FORM check_existence_as  USING    lv_g_flag_exist_as.
 *      OTHERS             = 2.                               "n1481757
                                                             "n1481757
                                                             "n1481757
-  CHECK : sy-subrc IS INITIAL.                              "n1481757
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = 'AS_API_INFOSTRUC_FIND'  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc) ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  CHECK : lv_subrc IS INITIAL.                              "n555246
+  "CHECK : sy-subrc IS INITIAL.                              "n1481757
                                                             "n1481757
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n1481757
 *    EXPORTING                                               "n1481757
 *      funcname           = 'ASH_MM_MATBEL_READ'             "n1481757
@@ -2285,9 +2415,19 @@ FORM check_existence_as  USING    lv_g_flag_exist_as.
 *      function_not_exist = 1                                "n1481757
 *      OTHERS             = 2.                               "n1481757
                                                             "n1481757
-  CHECK : sy-subrc IS INITIAL.                              "n1481757
+  TRY.
+      lo_fm_handler = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = 'ASH_MM_MATBEL_READ'  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = lv_subrc ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  CHECK : lv_subrc IS INITIAL.                              "n555246
+  "CHECK : sy-subrc IS INITIAL.                              "n1481757
                                                             "n1481757
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'FUNCTION_EXISTS'                           "n1481757
 *    EXPORTING                                               "n1481757
 *      funcname           = 'AS_API_READ'                    "n1481757
@@ -2295,7 +2435,17 @@ FORM check_existence_as  USING    lv_g_flag_exist_as.
 *      function_not_exist = 1                                "n1481757
 *      OTHERS             = 2.                               "n1481757
                                                             "n1481757
-  CHECK : sy-subrc IS INITIAL.                              "n1481757
+  TRY.
+      lo_fm_handler = NEW zcl_mb5b_fm_func_exist_01( iv_fm_name = 'FUNCTION_EXISTS' ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~set_input( EXPORTING iv_funcname = 'AS_API_READ'  ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_func_exist_01~get_results(  IMPORTING  ev_subrc = lv_subrc ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  CHECK : lv_subrc IS INITIAL.                              "n555246
+  "CHECK : sy-subrc IS INITIAL.                              "n1481757
   lv_g_flag_exist_as = 'X'.                                 "n1481757
                                                             "n1481757
 ENDFORM.                    " CHECK_EXISTENCE_AS
@@ -2319,17 +2469,34 @@ FORM check_archive_index  USING    lv_g_flag_too_many_sel
                                                             "n1481757
                                                             "n1481757
 * get the fields of the arch. info structure                "n1481757
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'AIND_NAMETAB_GET'                          "n1481757
 *    EXPORTING                                               "n1481757
 *      i_archindex      = pa_aistr                           "n1481757
-*      i_reffields_only = 'X'                                "n1481757
+*      i_reffields = 'X'                                "n1481757
 *    TABLES                                                  "n1481757
 *      t_nametab        = lt_nametab                         "n1481757
 *    EXCEPTIONS                                              "n1481757
 *      index_not_found  = 1.                                 "n1481757
-                                                            "n1481757
-  IF sy-subrc <> 0.                                         "n1481757
+*                                                            "n1481757
+*
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_aind_nametab_get( iv_fm_name = 'AIND_NAMETAB_GET' ).
+      lo_fm_handler->zif_mb5b_fm_aind_nametab_get~set_input( EXPORTING iv_archindex  = pa_aistr
+                                                                                                                           iv_reffields =  'X'
+                                                                                                                           it_tabname =   lt_nametab[]
+                                                                                                                            ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_aind_nametab_get~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc)
+                                                                                                                                et_tabname = lt_nametab[]
+                                                                                                                                  ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+*
+
+  "IF sy-subrc <> 0.                                         "n1481757
+  IF lv_subrc <> 0.                                         "n1481757
     SET CURSOR               FIELD 'PA_AISTR'.              "n1481757
 *   Enter a suitable info structure                         "n1481757
     MESSAGE  e509(q6)        WITH  pa_aistr.                "n1481757
@@ -2444,7 +2611,7 @@ FORM call_as_api_read_block_keys
 * get the keys for the archive only                         "n1481757
 * the type of the assigned table for "E_RESULTS" determines "n1481757
 * the results                                               "n1481757
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *  CALL FUNCTION 'AS_API_READ'                               "n1481757
 *        EXPORTING                                           "n1481757
 *          i_fieldcat         = g_f_afcat                    "n1481757
@@ -2456,7 +2623,23 @@ FORM call_as_api_read_block_keys
 *          no_infostruc_found = 2                            "n1481757
 *          OTHERS             = 4.                           "n1481757
                                                             "n1481757
-  IF  NOT sy-subrc IS INITIAL.                              "n1481757
+
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_as_api_read( iv_fm_name = 'AS_API_READ' ).
+      lo_fm_handler->zif_mb5b_fm_as_api_read~set_input( EXPORTING iv_fieldcat   = g_f_afcat
+                                                                                                                           it_selections  =  l_t_frange[]
+                                                                                                                           it_as_key =   l_t_as_key[]
+                                                                                                                            ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_as_api_read~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc)
+                                                                                                                                et_as_key = l_t_as_key[]
+                                                                                                                                  ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+  "IF  NOT sy-subrc IS INITIAL.                              "n1481757
+  IF  NOT lv_subrc IS INITIAL.                              "n1481757
     MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno       "n1481757
         WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.           "n1481757
   ENDIF.                                                    "n1481757
@@ -2612,7 +2795,7 @@ FORM fill_table_g_t_mseg_or_group                           "n1481757
     APPEND LINES OF ct_mseg_key_group TO g_t_mseg_key_te.
     RETURN.
   ENDIF.
-  zcl_todo_list=>replace_fm( ).
+*  zcl_todo_list=>replace_fm( ).
 *CALL FUNCTION 'ASH_MM_MATBEL_READ'
 * EXPORTING
 *   I_ARCHIVEKEY                 = wa_hashtable-archivekey
@@ -2622,7 +2805,22 @@ FORM fill_table_g_t_mseg_or_group                           "n1481757
 * EXCEPTIONS
 *   NOT_IN_ARCHIVE               = 1
 *   OTHERS                       = 2.
-  IF sy-subrc <> 0.
+
+  TRY.
+      DATA(lo_fm_handler) = NEW zcl_mb5b_fm_matbel_read( iv_fm_name = 'ASH_MM_MATBEL_READ' ).
+      lo_fm_handler->zif_mb5b_fm_matbel_read~set_input( EXPORTING iv_archivekey  = wa_hashtable-archivekey
+                                                                                                                           iv_offset =  wa_hashtable-offset
+                                                                                                                           it_mseg = lt_mseg_archiv[] ) .
+      lo_fm_handler->zif_mb5b_fm_base~process( ).
+      lo_fm_handler->zif_mb5b_fm_matbel_read~get_results(  IMPORTING  ev_subrc = DATA(lv_subrc)
+                                                                                                                                et_mseg = lt_mseg_archiv[]  ).
+    CATCH zcx_process_mb5b_select.
+
+  ENDTRY.
+
+
+  "IF sy-subrc <> 0.
+  IF lv_subrc <> 0.
     MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
             WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
   ENDIF.

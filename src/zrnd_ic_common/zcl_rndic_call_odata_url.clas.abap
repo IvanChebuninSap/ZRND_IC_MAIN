@@ -113,32 +113,32 @@ CLASS zcl_rndic_call_odata_url IMPLEMENTATION.
              http_invalid_state          = 2
              http_processing_failed      = 3
              OTHERS                      = 4 ).
-      IF sy-subrc <> 0.
-        CALL METHOD lo_client->get_last_error
-          IMPORTING
-            code    = DATA(lv_error_code)
-            message = DATA(lv_errortext).
-        CLEAR  ev_xml.
-        RAISE EXCEPTION TYPE zcx_odata_call_uri.
-      ENDIF.
-      lo_client->receive(   EXCEPTIONS http_communication_failure  = 1
-             http_invalid_state          = 2
-             http_processing_failed      = 3
-             OTHERS                      = 4 ).
-      IF sy-subrc <> 0.
-        lo_client->response->get_status(
+        IF sy-subrc <> 0.
+          CALL METHOD lo_client->get_last_error
             IMPORTING
-              code   = lv_error_code
-              reason = lv_errortext
-                 ).
-        CLEAR  ev_xml.
+              code    = DATA(lv_error_code)
+              message = DATA(lv_errortext).
+          CLEAR  ev_xml.
+          RAISE EXCEPTION TYPE zcx_odata_call_uri.
+        ENDIF.
+        lo_client->receive(   EXCEPTIONS http_communication_failure  = 1
+               http_invalid_state          = 2
+               http_processing_failed      = 3
+               OTHERS                      = 4 ).
+        IF sy-subrc <> 0.
+          lo_client->response->get_status(
+              IMPORTING
+                code   = lv_error_code
+                reason = lv_errortext
+                   ).
+          CLEAR  ev_xml.
+          RAISE EXCEPTION TYPE zcx_odata_call_uri.
+        ENDIF.
+        ev_xml = lo_client->response->get_data( ).
+        lo_client->close( ).
+      CATCH cx_root.
         RAISE EXCEPTION TYPE zcx_odata_call_uri.
-      ENDIF.
-      ev_xml = lo_client->response->get_data( ).
-      lo_client->close( ).
-    CATCH cx_root.
-      RAISE EXCEPTION TYPE zcx_odata_call_uri.
-  ENDTRY.
-ENDMETHOD.
+    ENDTRY.
+  ENDMETHOD.
 
 ENDCLASS.

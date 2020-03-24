@@ -1,5 +1,5 @@
-interface ZIF_MB5B_SELECT_BASE
-  public .
+INTERFACE zif_mb5b_select_base
+  PUBLIC .
 
     METHODS process
         EXPORTING
